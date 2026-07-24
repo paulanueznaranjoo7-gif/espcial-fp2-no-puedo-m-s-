@@ -1,0 +1,158 @@
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class LinkedList:
+
+    def __init__(self):
+        self.first = None
+
+    def add_last(self, value):
+        new_node = Node(value)
+
+        if self.first is None:
+            self.first = new_node
+            return
+
+        current = self.first
+
+        while current.next is not None:
+            current = current.next
+
+        current.next = new_node
+
+    def print_list(self):
+        current = self.first
+
+        while current is not None:
+            print(current.data, end=" ")
+            current = current.next
+
+        print()
+
+    # ======================================
+    # EJERCICIO 1
+    #
+    # Devuelve True si value está en la lista.
+    # Si no está, devuelve False.
+    #
+    # Ejemplo:
+    # contains(8) -> True
+    # contains(50) -> False
+    # ======================================
+    def contains(self, value):
+        current = self.first
+        
+        while current is not None:
+            if current.data == value:
+                return True
+            else:
+                current = current.next
+        return False
+
+    # ======================================
+    # EJERCICIO 2
+    #
+    # Inserta value en la posición index.
+    #
+    # Ejemplo:
+    #
+    # 5 -> 3 -> 8 -> 2
+    #
+    # insert_at(2,100)
+    #
+    # Resultado:
+    #
+    # 5 -> 3 -> 100 -> 8 -> 2
+    # ======================================
+    def insert_at(self, index, value):
+        new_node = Node(value)
+        
+        if index < 0:
+            raise IndexValueError
+        
+        elif index == 0:
+            new_node.next = self.first
+            self.first = new_node
+            return
+        
+        else:
+            current_pos = 1
+            prev = self.first
+            current = self.first.next
+            
+            while current is not None and current_pos < index:
+                current_pos += 1
+                prev = current
+                current = current.next
+            
+            prev.next = new_node
+            new_node.next = current
+                
+                    
+            
+
+    # ======================================
+    # EJERCICIO 3
+    #
+    # Elimina el PRIMER nodo cuyo dato sea
+    # mayor que limit.
+    #
+    # Ejemplo:
+    #
+    # 5 -> 3 -> 8 -> 12 -> 2
+    #
+    # remove_first_greater_than(7)
+    #
+    # Resultado:
+    #
+    # 5 -> 3 -> 12 -> 2
+    # ======================================
+    def remove_first_greater_than(self, limit):
+        if self.first is None:
+            return None
+            
+        elif self.first.data > limit:
+            self.first = self.first.next
+            return 
+        
+        else:
+            prev = self.first
+            current = self.first.next
+            
+            while current.next is not None and current.data < limit:
+                prev = current
+                current = current.next
+            
+            if current is None:
+                return
+            
+            prev.next = current.next
+            
+
+
+# =====================
+# MAIN
+# =====================
+
+lista = LinkedList()
+
+lista.add_last(5)
+lista.add_last(3)
+lista.add_last(8)
+lista.add_last(12)
+lista.add_last(2)
+
+print("Lista inicial:")
+lista.print_list()
+
+print(lista.contains(8))
+print(lista.contains(20))
+
+lista.insert_at(2, 100)
+lista.print_list()
+
+lista.remove_first_greater_than(7)
+lista.print_list()

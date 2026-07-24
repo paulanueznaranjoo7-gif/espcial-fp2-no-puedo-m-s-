@@ -1,0 +1,166 @@
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class LinkedList:
+
+    def __init__(self):
+        self.first = None
+
+    def add_last(self, value):
+        new_node = Node(value)
+
+        if self.first is None:
+            self.first = new_node
+        else:
+            current = self.first
+
+            while current.next is not None:
+                current = current.next
+
+            current.next = new_node
+
+    def print_list(self):
+        current = self.first
+
+        while current is not None:
+            print(current.data, end=" ")
+            current = current.next
+
+        print()
+
+    # ==========================
+    # EJERCICIO 1
+    # Elimina el nodo situado en la posición index.
+    #
+    # Ejemplo:
+    # 5 -> 3 -> 8 -> 2
+    #
+    # remove_at(2)
+    #
+    # Resultado:
+    # 5 -> 3 -> 2
+    # ==========================
+    def remove_at(self, index):
+        if self.first is None:
+            return None
+        if index == 0:
+            self.first = self.first.next
+        else:
+            current_pos = 0
+            prev = self.first
+            current = self.first.next
+            
+            while current is not None and index > current_pos:
+                prev = current
+                current = current.next
+                current_pos += 1
+            
+            prev.next = current.next
+    # ==========================
+    # EJERCICIO 2
+    # Inserta new_value antes del primer nodo
+    # que contenga value.
+    #
+    # Ejemplo:
+    # 5 -> 3 -> 8 -> 2
+    #
+    # insert_before(8,10)
+    #
+    # Resultado:
+    # 5 -> 3 -> 10 -> 8 -> 2
+    # ==========================
+    def insert_before(self, value, new_value):
+        new_node = Node(new_value)
+        
+        if value == self.first.data:
+            new_node.next = self.first
+            self.first = new_node
+        
+        prev = self.first
+        current = self.first.next
+        
+        while current is not None:
+            if current.data == value:
+                new_node.next = current
+                prev.next = new_node
+                return
+            else:
+                prev = current
+                current = current.next
+
+    # ==========================
+    # EJERCICIO 3
+    # Intercambia los nodos
+    # (NO los datos)
+    #
+    # Ejemplo:
+    # 5 -> 3 -> 8 -> 2
+    #
+    # swap_nodes(3,2)
+    #
+    # Resultado:
+    # 5 -> 2 -> 8 -> 3
+    # ==========================
+    def swap_nodes(self, value1, value2):
+        prev = None
+        current = self.first
+        
+        while current is not None:
+            if current.data == value1:
+                nodo1 = current
+                prev1 = prev
+                
+            elif current.data == value2:
+                nodo2 = current
+                prev2 = prev
+        
+            prev = current   
+            current = current.next
+        
+        if prev1 is not None:
+            prev1.next = nodo2
+        else:
+            self.first = nodo2
+            
+        
+        if prev2 is not None:
+            prev2.next = nodo1
+        else:
+            self.first = nodo1
+        
+        temp = nodo1.next #temp solo guarda el next del primer nodo, independientemente de que ese nodo sea el primero, el último o uno del medio.
+        nodo1.next = nodo2.next
+        nodo2.next = temp
+        
+        
+        
+        
+# ==========================
+# MAIN
+# ==========================
+
+lista = LinkedList()
+
+lista.add_last(5)
+lista.add_last(3)
+lista.add_last(8)
+lista.add_last(2)
+lista.add_last(9)
+
+print("Lista inicial:")
+lista.print_list()
+
+print("\nremove_at(2)")
+lista.remove_at(2)
+lista.print_list()
+
+print("\ninsert_before(9, 100)")
+lista.insert_before(9, 100)
+lista.print_list()
+
+print("\nswap_nodes(3, 100)")
+lista.swap_nodes(3, 100)
+lista.print_list()

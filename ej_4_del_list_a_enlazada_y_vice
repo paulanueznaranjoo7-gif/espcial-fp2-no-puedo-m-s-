@@ -32,7 +32,7 @@ class LinkedList:
     # EJERCICIO 1
     # Convierte la lista enlazada en una lista de Python.
     def to_python_list(self):
-        self.lista = []
+        self.lista = [] #seria mejor poner lista porque al hacer self.lista lo hacemos un atribirto permantente del objeto LinkedList
         
         current = self.first
         

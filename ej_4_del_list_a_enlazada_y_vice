@@ -1,0 +1,86 @@
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class LinkedList:
+    def __init__(self):
+        self.first = None
+
+    def add_last(self, value):
+        new_node = Node(value)
+
+        if self.first is None:
+            self.first = new_node
+            return
+
+        current = self.first
+
+        while current.next is not None:
+            current = current.next
+
+        current.next = new_node
+
+    def print(self):
+        current = self.first
+
+        while current is not None:
+            print(current.data)
+            current = current.next
+
+    # EJERCICIO 1
+    # Convierte la lista enlazada en una lista de Python.
+    def to_python_list(self):
+        self.lista = []
+        
+        current = self.first
+        
+        while current is not None:
+            self.lista.append(current.data)
+            current = current.next
+        
+        return self.lista
+
+    # EJERCICIO 2
+    # Recibe una lista de Python y construye la lista enlazada.
+    def from_python_list(self, numbers):
+        
+        for i in numbers:
+            self.add_last(i)
+
+
+def main():
+
+    print("=== PRUEBA 1 ===")
+
+    lista = LinkedList()
+
+    lista.add_last(5)
+    lista.add_last(3)
+    lista.add_last(8)
+    lista.add_last(2)
+
+    print("Lista enlazada:")
+    lista.print()
+
+    python_list = lista.to_python_list()
+
+    print("\nLista de Python:")
+    print(python_list)
+
+    print("\n=========================\n")
+
+    print("=== PRUEBA 2 ===")
+
+    datos = [10, 20, 30, 40, 50]
+
+    lista2 = LinkedList()
+
+    lista2.from_python_list(datos)
+
+    print("Lista enlazada creada desde una lista de Python:")
+    lista2.print()
+
+
+main()

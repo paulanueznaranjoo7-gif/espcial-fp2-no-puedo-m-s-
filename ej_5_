@@ -1,0 +1,192 @@
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class LinkedList:
+    def __init__(self):
+        self.first = None
+        self._limit = 10
+
+    def add_last(self, value):
+        new_node = Node(value)
+
+        if self.first is None:
+            self.first = new_node
+            return
+
+        current = self.first
+
+        while current.next is not None:
+            current = current.next
+
+        current.next = new_node
+
+    def print_list(self):
+        current = self.first
+
+        while current is not None:
+            print(current.data, end=" ")
+            current = current.next
+
+        print()
+
+
+    # ==========================================
+    # PROPERTY + SETTER
+    #
+    # Getter:
+    # devuelve el valor de _limit
+    #
+    # Setter:
+    # SOLO permite cambiar limit si el nuevo
+    # valor es mayor o igual que 0.
+    #
+    # Si es negativo:
+    # raise ValueError
+    # ==========================================
+
+    @property
+    def limit(self):
+        return self._limit
+
+    @limit.setter
+    def limit(self, value):
+        if value < 0:
+            raise ValueError
+        else:
+            self._limit = value
+
+
+    # ==========================================
+    # MÉTODO 1
+    #
+    # Devuelve una lista normal de Python
+    # con los valores MAYORES que self.limit
+    #
+    # Ejemplo:
+    # lista: 5 -> 20 -> 3 -> 15
+    # limit = 10
+    #
+    # devuelve:
+    # [20, 15]
+    # ==========================================
+
+    def values_over_limit(self):
+        
+        numeros = []
+        
+        current = self.first
+        
+        while current is not None:
+            if current.data > self._limit:
+                numeros.append(current.data)
+            current = current.next
+        
+        return numeros
+                
+
+
+    # ==========================================
+    # MÉTODO 2
+    #
+    # Elimina TODOS los nodos cuyo valor
+    # sea menor que self.limit.
+    #
+    # Ejemplo:
+    # lista: 5 -> 20 -> 3 -> 15
+    # limit = 10
+    #
+    # resultado:
+    # 20 -> 15
+    # ==========================================
+
+    def remove_under_limit(self):
+        
+        prev = self.first
+        current = self.first.next
+        
+        if self.first.data < self._limit:
+            self.first = self.first.next
+        
+        while current is not None:
+            if current.data < self._limit:
+                prev.next = current.next
+            prev = current
+            current = current.next
+        
+
+
+    # ==========================================
+    # MÉTODO 3
+    #
+    # Recibe una lista normal de Python.
+    #
+    # Añade al final SOLO los números
+    # mayores que self.limit Y que no existan
+    # ya en la lista enlazada.
+    #
+    # Ejemplo:
+    #
+    # enlazada:
+    # 20 -> 15
+    #
+    # numbers:
+    # [8, 20, 30, 12, 40]
+    #
+    # limit = 10
+    #
+    # resultado:
+    # 20 -> 15 -> 30 -> 12 -> 40
+    # ==========================================
+
+    def add_valid_values(self, numbers):
+        
+        for i in numbers:
+            if i > self._limit:
+                self.add_last(i) 
+                
+        
+        
+
+
+# ==========================================
+# MAIN
+# ==========================================
+
+def main():
+
+    lista = LinkedList()
+
+    lista.add_last(5)
+    lista.add_last(20)
+    lista.add_last(3)
+    lista.add_last(15)
+
+    print("Lista inicial:")
+    lista.print_list()
+
+    print("\nLimit inicial:")
+    print(lista.limit)
+
+    print("\nCambiamos limit a 10:")
+    lista.limit = 10
+    print(lista.limit)
+
+    print("\nValores mayores que limit:")
+    print(lista.values_over_limit())
+    # Esperado: [20, 15]
+
+    print("\nEliminar menores que limit:")
+    lista.remove_under_limit()
+    lista.print_list()
+    # Esperado: 20 15
+
+    print("\nAñadir valores válidos:")
+    lista.add_valid_values([8, 20, 30, 12, 40])
+    lista.print_list()
+    # Esperado: 20 15 30 12 40
+
+
+main()

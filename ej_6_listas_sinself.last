@@ -1,0 +1,253 @@
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+
+class LinkedList:
+    def __init__(self):
+        self.first = None
+
+
+    # YA IMPLEMENTADO PARA PODER CREAR LA LISTA
+    def add_last(self, value):
+        new_node = Node(value)
+
+        if self.first is None:
+            self.first = new_node
+            return
+
+        current = self.first
+
+        while current.next is not None:
+            current = current.next
+
+        current.next = new_node
+
+
+    # YA IMPLEMENTADO
+    def print_list(self):
+        current = self.first
+
+        while current is not None:
+            print(current.data, end=" ")
+            current = current.next
+
+        print()
+
+
+    # ==========================================
+    # MÉTODO 1
+    # ELIMINAR PRIMERO
+    #
+    # Elimina el primer nodo.
+    #
+    # 5 -> 3 -> 8 -> 2
+    #
+    # Resultado:
+    # 3 -> 8 -> 2
+    # ==========================================
+    def remove_first(self):
+        
+        if self.first is None:
+            return None
+    
+        else:
+            self.first = self.first.next
+
+
+    # ==========================================
+    # MÉTODO 2
+    # ELIMINAR ÚLTIMO
+    #
+    # 5 -> 3 -> 8 -> 2
+    #
+    # Resultado:
+    # 5 -> 3 -> 8
+    # ==========================================
+    def remove_last(self):
+        
+        if self.first is None:
+            return None
+            
+        elif self.first.next is None:
+            self.first = None
+            return
+            
+        prev = self.first
+        current = self.first.next
+        
+        while current.next is not None:
+            prev = current
+            current = current.next
+        
+        prev.next = current.next #sería igual a decir prev.next = None
+    
+            
+
+
+    # ==========================================
+    # MÉTODO 3
+    # INSERTAR PRIMERO
+    #
+    # 5 -> 3 -> 8
+    #
+    # insert_first(100)
+    #
+    # Resultado:
+    # 100 -> 5 -> 3 -> 8
+    # ==========================================
+    def insert_first(self, value):
+        new_node = Node(value)
+        
+        if self.first is None:
+            self.first = new_node
+        else:
+            new_node.next = self.first
+            self.first = new_node
+
+
+    # ==========================================
+    # MÉTODO 4
+    # ELIMINAR POR POSICIÓN
+    #
+    # 0 = primera posición
+    #
+    # 5 -> 3 -> 8 -> 2 -> 10
+    #
+    # remove_at(2)
+    #
+    # Resultado:
+    # 5 -> 3 -> 2 -> 10
+    #
+    # Si la posición no existe, no hace nada.
+    # ==========================================
+    def remove_at(self, index):
+        
+        if index < 0:
+            return
+        
+        elif index == 0:
+            if self.first is not None:
+               self.first = self.first.next
+            else:
+                return 
+        
+        elif self.first is None:
+            return 
+        
+        else:
+            current_pos = 1
+            prev = self.first
+            current = self.first.next
+            
+            while current is not None and current_pos < index:
+                current_pos += 1
+                prev = current 
+                current = current.next
+            
+            if current is None:
+                return
+
+            prev.next = current.next
+                
+            
+
+
+    # ==========================================
+    # MÉTODO 5
+    # INSERTAR POR POSICIÓN
+    #
+    # 0 = primera posición
+    #
+    # 5 -> 3 -> 8 -> 2
+    #
+    # insert_at(2, 100)
+    #
+    # Resultado:
+    # 5 -> 3 -> 100 -> 8 -> 2
+    #
+    # Si index < 0:
+    # raise IndexError
+    # ==========================================
+    def insert_at(self, index, value):
+        new_node = Node(value)
+        
+        if self.first is None:
+            return
+        
+        elif index < 0:
+            raise IndexError
+        
+        elif index == 0:
+            new_node.next = self.first
+            self.first = new_node
+        
+        else:
+            current_pos = 1
+            prev = self.first
+            current = self.first.next
+            
+            while current is not None and current_pos < index:
+                current_pos += 1
+                prev = current
+                current = current.next
+            
+            prev.next = new_node
+            new_node.next = current
+            
+            
+            
+            
+            
+
+
+# ==========================================
+# MAIN
+# ==========================================
+
+def main():
+
+    lista = LinkedList()
+
+    lista.add_last(5)
+    lista.add_last(3)
+    lista.add_last(8)
+    lista.add_last(2)
+    lista.add_last(10)
+
+    print("Inicial:")
+    lista.print_list()
+
+
+    print("\n1. REMOVE FIRST")
+    lista.remove_first()
+    lista.print_list()
+    # 3 8 2 10
+
+
+    print("\n2. REMOVE LAST")
+    lista.remove_last()
+    lista.print_list()
+    # 3 8 2
+
+
+    print("\n3. INSERT FIRST")
+    lista.insert_first(50)
+    lista.print_list()
+    # 50 3 8 2
+
+
+    print("\n4. REMOVE AT")
+    lista.remove_at(2)
+    lista.print_list()
+    # 50 3 2
+
+
+    print("\n5. INSERT AT")
+    lista.insert_at(1, 100)
+    lista.print_list()
+    # 50 100 3 2
+
+
+main()

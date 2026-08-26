@@ -1,0 +1,139 @@
+class SequenceOfInts():
+    class Node:
+        def __init__(self, value, next = None):
+            self.value = value  # El valor en el nodo.
+            self.next = next    # El enlace al siguiente nodo.
+
+
+    def __init__(self):
+        self.first = None   # El enlace al primer nodo de la lista.
+    
+    def __str__(self):
+        resultado = ""
+        current = self.first
+
+        while current is not None:
+            resultado += str(current.value) + "->"
+            current = current.next
+
+        resultado += "None"
+
+        return resultado
+    
+    def add_first(self, data):
+        new_node = self.Node(data)
+        
+        if self.first is None:
+            self.first = new_node
+        else:
+            new_node.next = self.first
+            self.first = new_node
+        
+    def add_last(self, data):
+        new_node = self.Node(data)
+        
+        if self.first is None:
+            self.first = new_node
+        else:
+            prev = None
+            current = self.first
+            while current is not None:
+                prev = current
+                current = current.next
+            
+            prev.next = new_node
+            prev = new_node
+            current = None
+    
+    def add_at(self, data, pos):
+        new_node = self.Node(data)
+        
+        if pos <= 0:
+            self.add_first(data) #pasamos el dato, no el nodo, el nodo ya lo crea el metodo que estamos señalando
+            return
+        
+        current = self.first
+        contador = 0
+        
+        while current is not None:
+            contador += 1
+            current = current.next
+        
+        current = self.first
+        if pos > (contador -1):
+            self.add_last(data)
+        
+        else:
+            current_pos = 1
+            prev = self.first
+            current = self.first.next
+            
+            while current.next is not None and current_pos < pos:
+                current_pos += 1
+                prev = current
+                current = current.next
+            
+            prev.next = new_node
+            new_node.next = current
+        
+            
+                
+    
+    @property
+    def size(self):
+        current = self.first
+        tamaño = 0
+        
+        while current is not None:
+            tamaño += 1
+            current = current.next
+        
+        return tamaño
+        
+    
+    @size.setter
+    def size(self, numero):
+        posicion = 0
+        current = self.first
+        
+        while current is not None:
+            if numero >= 0 and numero < self.size: #usamos el tamaño, la variable tamaño solo existe dentro del getter
+                if posicion == numero - 1 : #elemento nº:     1     2     3     4; 10 →  20 →  30 →  40 posición:        0     1     2     3
+                    current.next = None
+                    return
+            current = current.next
+            posicion += 1
+            
+    
+    def __iter__(self):
+        current = self.first
+        
+        while current is not None:
+            yield current.value
+            current = current.next
+        
+    def start_with(self, list):
+        
+        if self.first is None:
+            return False
+        
+        current = self.first
+        contador = 0
+        while current is not None:
+            contador += 1
+            current = current.next
+            
+        current = self.first
+        while current is not None and contador >= len(list):
+            for i in list:
+                if i != current.value:
+                    return False
+                current = current.next
+            return True
+        return False
+                
+            
+        
+        
+        
+        

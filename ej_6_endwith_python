@@ -1,0 +1,247 @@
+class Node:
+    def __init__(self, value, next=None):
+        self.value = value
+        self.next = next
+
+
+class IntChain:
+    def __init__(self):
+        self.head = None
+
+    def __str__(self):
+        result = ""
+        current = self.head
+
+        while current is not None:
+            result += str(current.value) + " -> "
+            current = current.next
+
+        result += "None"
+        return result
+
+
+    # 1. Añade value justo después de la primera
+    # aparición de reference.
+    #
+    # Ejemplo:
+    # 4 -> 7 -> 9 -> 2
+    #
+    # insert_after(7, 100)
+    #
+    # Resultado:
+    # 4 -> 7 -> 100 -> 9 -> 2
+    #
+    # Si reference no existe, no hace nada.
+    def insert_after(self, reference, value):
+        new_node = Node(value)
+        
+        if self.head is None:
+            return
+        
+        elif self.head.value == reference:
+            self.head.next = new_node
+            return
+        
+        igualcurrent = self.head
+        current = self.head
+        
+        while current is not None:
+            if igualcurrent.value == reference:
+                new_node.next = igualcurrent.next
+                igualcurrent.next = new_node
+                return
+            else:
+                igualcurrent = igualcurrent.next
+                current = current.next
+
+
+    # 2. Elimina TODAS las apariciones de value.
+    #
+    # Ejemplo:
+    # 4 -> 7 -> 4 -> 9 -> 4
+    #
+    # remove_all(4)
+    #
+    # Resultado:
+    # 7 -> 9
+    def remove_all(self, value):
+      
+        if self.head is None:
+            None
+        
+        if self.head.value == value:
+            self.head = self.head.next
+        
+        prev = self.head
+        current = self.head.next
+        
+        while current is not None:
+            if current.value == value:
+                prev.next = current.next
+                current = current.next
+            else:
+                prev = current
+                current = current.next
+
+
+    # 3. Devuelve el valor que está en la posición pos.
+    #
+    # Posiciones desde 0.
+    #
+    # Ejemplo:
+    # 10 -> 20 -> 30
+    #
+    # get(1) -> 20
+    #
+    # Si pos no existe, devuelve None.
+    def get(self, pos):
+        
+        if self.head is None:
+            return None
+        
+        elif pos < 0:
+            raise IndexError
+        
+        else:
+            current_pos = 0
+            current = self.head
+            
+            while current is not None and current_pos < pos:
+                current_pos += 1
+                current = current.next
+                
+            if current is None and current_pos < pos:
+              return None
+            
+            return current.value
+                
+
+
+    # 4. Property:
+    #
+    # Devuelve True si la secuencia está ordenada
+    # de menor a mayor.
+    #
+    # 2 -> 5 -> 8 -> 10    => True
+    # 2 -> 8 -> 5 -> 10    => False
+    @property
+    def is_sorted(self):
+        
+        if self.head is None:
+            return False
+        
+        current = self.head
+        
+        while current.next is not None:
+            if current.value > current.next.value:
+                return False
+            else:
+                current = current.next
+            
+        return True
+                
+                
+                
+
+
+    # 5. Iterador:
+    #
+    # Debe permitir:
+    #
+    # for value in chain:
+    #     print(value)
+    #
+    # y producir los VALORES, no los nodos.
+    def __iter__(self):
+        current = self.head
+        
+        while current is not None:
+            yield current.value
+            current = current.next
+        
+
+
+    # 6. Comprueba si la secuencia TERMINA
+    # con los valores de una lista normal de Python.
+    #
+    # Ejemplo:
+    #
+    # cadena:
+    # 5 -> 8 -> 10 -> 20
+    #
+    # ends_with([10, 20]) -> True
+    # ends_with([8, 20])  -> False
+    # ends_with([5, 8, 10, 20]) -> True
+    #
+    # Si values tiene más elementos que la cadena,
+    # devuelve False.
+    
+    def ends_with(self, values):
+        tamaño = 0
+        current = self.head
+        
+        while current is not None:
+            tamaño += 1
+            current = current.next
+      
+        contador = -1
+        while abs(contador) <=  len(values):
+            if values[contador] != self.get(tamaño + contador):
+                return False
+            else:
+                contador -= 1
+        return True
+        
+            
+        
+            
+        
+
+
+def main():
+
+    chain = IntChain()
+
+    # Para construir la cadena directamente
+    chain.head = Node(5)
+    chain.head.next = Node(8)
+    chain.head.next.next = Node(10)
+    chain.head.next.next.next = Node(8)
+    chain.head.next.next.next.next = Node(20)
+    
+
+    print("Cadena inicial:")
+    print(chain)
+
+    print("\n1. INSERT AFTER")
+    chain.insert_after(10, 100)
+    print(chain)
+    # 5 -> 8 -> 10 -> 100 -> 8 -> 20 -> None
+
+    print("\n2. REMOVE ALL")
+    chain.remove_all(8)
+    print(chain)
+    # 5 -> 10 -> 100 -> 20 -> None
+
+    print("\n3. GET")
+    print(chain.get(2))
+    # 100
+
+    print("\n4. IS SORTED")
+    print(chain.is_sorted)
+    # False
+
+    print("\n5. ITERADOR")
+    for value in chain:
+        print(value, end=" ")
+    # 5 10 100 20
+
+    print("\n\n6. ENDS WITH")
+    print(chain.ends_with([100, 20]))
+    # True
+
+    print(chain.ends_with([10, 20]))
+    # False
+
+
+main()

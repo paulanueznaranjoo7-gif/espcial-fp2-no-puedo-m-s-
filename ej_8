@@ -1,0 +1,250 @@
+class MovieNode:
+    def __init__(self, title, rating, next=None):
+        self.title = title
+        self.rating = rating
+        self.next = next
+
+
+class MovieList:
+    def __init__(self):
+        self.head = None
+
+
+    def __str__(self):
+        result = ""
+        current = self.head
+
+        while current is not None:
+            result += f"{current.title}({current.rating}) -> "
+            current = current.next
+
+        result += "None"
+        return result
+
+
+    # 1. Añade una película al FINAL.
+    #
+    # add_movie("Alien", 8.5)
+    #
+    # Si la lista está vacía, pasa a ser el primer nodo.
+    def add_movie(self, title, rating):
+        movie = MovieNode(title, rating) #primero creamos el objeto
+        new_node = movie #Aquí el propio nodo ya contiene directamente title y rating. No existe una clase Movie separada.
+        
+        if self.head is None:
+          self.head = new_node
+        else:
+            prev = None
+            current = self.head
+            
+            while current is not None:
+                prev = current
+                current = current.next
+            
+            prev.next = new_node
+            prev = new_node
+            
+
+    # 2. Devuelve el título de la película
+    # con MAYOR puntuación.
+    #
+    # Ejemplo:
+    # Alien(8.5) -> Cars(7.2) -> Matrix(9.0)
+    #
+    # best_movie() -> "Matrix"
+    #
+    # Si está vacía, devuelve None.
+    def best_movie(self):
+        
+        if self.head is None:
+            return None
+        else:
+            current = self.head
+            maximo = -9999
+            maxi = ""
+            while current is not None:
+                if current.rating > maximo:
+                    maximo = current.rating
+                    maxi = current.title
+                
+                current = current.next
+            
+            return maxi
+
+
+    # 3. Sube la puntuación de TODAS las películas
+    # que tengan una nota inferior a limit.
+    #
+    # El incremento será amount.
+    #
+    # Ejemplo:
+    #
+    # 5.0 -> 7.0 -> 4.0
+    #
+    # increase_low_ratings(6, 1)
+    #
+    # Resultado:
+    # 6.0 -> 7.0 -> 5.0
+    def increase_low_ratings(self, limit, amount):
+      
+        current = self.head
+        
+        while current is not None:
+          if current.rating < limit:
+            current.rating += amount
+          
+          current = current.next
+            
+        
+        
+
+
+    # 4. Devuelve cuántas películas tienen una
+    # puntuación entre minimum y maximum,
+    # ambos incluidos.
+    #
+    # count_between(7, 9)
+    def count_between(self, minimum, maximum):
+        current = self.head
+        
+        contador = 0
+        while current is not None:
+          if minimum <= current.rating <= maximum:
+            contador += 1
+          current = current.next
+        return contador
+            
+
+
+    # 5. Property.
+    #
+    # Devuelve la media de todas las puntuaciones.
+    #
+    # Si está vacía, devuelve 0.
+    @property
+    def average_rating(self):
+        
+        if self.head is None:
+          return 0
+        else:
+          current = self.head
+          
+          suma = 0.0
+          contador = 0
+          while current is not None:
+            suma += current.rating
+            contador += 1
+            current = current.next
+          
+          return suma / contador
+            
+
+
+    # 6. CLASS METHOD
+    #
+    # Recibe una lista normal de Python con tuplas:
+    #
+    # [
+    #     ("Alien", 8.5),
+    #     ("Matrix", 9.0),
+    #     ("Cars", 7.2)
+    # ]
+    #
+    # y debe CREAR y DEVOLVER un objeto MovieList
+    # que contenga esas películas.
+    #
+    # IMPORTANTE:
+    # al ser classmethod NO trabajas con self.
+    @classmethod
+    def from_list(cls, movies): #from_list debe crear un NUEVO MovieList cada vez que lo llamas.
+      
+        peliculas = cls()
+      
+        for i in movies:
+          peliculas.add_movie(i[0], i[1])
+        
+        return peliculas
+        
+          
+
+
+    # 7. Devuelve una lista normal de Python
+    # solamente con los títulos cuya puntuación
+    # sea mayor o igual que minimum.
+    #
+    # Ejemplo:
+    #
+    # titles_with_rating(8)
+    #
+    # -> ["Alien", "Matrix"]
+    def titles_with_rating(self, minimum):
+        
+        lista = []
+        current = self.head
+        
+        while current is not None:
+          if current.rating >= minimum:
+            lista.append((current.title, current.rating))
+          current = current.next
+        
+        return lista
+            
+    
+    
+    
+    
+def main():
+
+    # Creamos una lista vacía
+    movies = MovieList()
+
+    print("LISTA INICIAL:")
+    print(movies)
+    # None
+
+
+    print("\n1. ADD MOVIE")
+
+    movies.add_movie("Alien", 8.5)
+    movies.add_movie("Cars", 7.2)
+    movies.add_movie("Matrix", 9.0)
+    movies.add_movie("Avatar", 6.5)
+
+    print(movies)
+    # Alien(8.5) -> Cars(7.2) -> Matrix(9.0) -> Avatar(6.5) -> None
+
+
+    print("\n2. BEST MOVIE")
+    print(movies.best_movie())
+    # Matrix
+
+
+    print("\n3. INCREASE LOW RATINGS")
+    movies.increase_low_ratings(7, 1)
+    print(movies)
+
+
+    print("\n4. COUNT BETWEEN")
+    print(movies.count_between(7, 9))
+
+
+    print("\n5. AVERAGE RATING")
+    print(movies.average_rating)
+
+
+    print("\n6. CLASS METHOD")
+
+    other_movies = MovieList.from_list([
+        ("Titanic", 8.0),
+        ("Gladiator", 8.7),
+        ("Jaws", 8.1)
+    ])
+
+    print(other_movies)
+
+
+    print("\n7. TITLES WITH RATING")
+    print(movies.titles_with_rating(8))
+
+
+main()

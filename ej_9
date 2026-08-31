@@ -1,0 +1,419 @@
+class Stop:
+    def __init__(self, name, waiting):
+        self.name = name
+        self.waiting = waiting
+
+    def __str__(self):
+        return f"{self.name} ({self.waiting})"
+
+
+class Node:
+    def __init__(self, value, next=None):
+        self.value = value
+        self.next = next
+
+
+class BusRoute:
+
+    def __init__(self):
+        self.first = None
+
+
+    # 1. ADD STOP FIRST
+    #
+    # Añade una parada AL PRINCIPIO de la ruta.
+    #
+    # stop es un objeto Stop.
+    def add_stop_first(self, stop):
+        new_node = Node(stop)
+        
+        if self.first is None:
+            self.first = new_node
+        else:
+            new_node.next = self.first
+            self.first = new_node
+
+
+    # 2. INSERT AFTER
+    #
+    # Inserta una nueva parada justo DESPUÉS
+    # de la primera parada cuyo nombre sea stop_name.
+    #
+    # Ejemplo:
+    #
+    # A -> B -> C
+    #
+    # insert_after("B", D)
+    #
+    # A -> B -> D -> C
+    #
+    # Devuelve True si pudo insertarla.
+    # Si no existe stop_name, devuelve False.
+    def insert_after(self, stop_name, new_stop):
+        new_node = Node(new_stop)
+        
+        if self.first is None:
+            return False
+        else:
+            puntero = self.first
+            current = self.first
+            while current is not None:
+                if current.value.name == stop_name:
+                    new_node.next = current.next
+                    puntero.next = new_node
+                    return True
+                puntero = puntero.next
+                current = current.next
+            return False
+                    
+
+
+    # 3. TOTAL WAITING
+    #
+    # Devuelve el número TOTAL de personas
+    # esperando entre todas las paradas.
+    #
+    # Ejemplo:
+    #
+    # A(4) -> B(7) -> C(2)
+    #
+    # devuelve 13
+    def total_waiting(self):
+        
+        current = self.first
+        
+        sumador = 0
+        while current is not None:
+            sumador += current.value.waiting
+            current = current.next
+        
+        return sumador
+            
+        
+
+
+    # 4. BUS ARRIVES
+    #
+    # El autobús llega a una parada.
+    #
+    # Recibe:
+    # - stop_name
+    # - capacity
+    #
+    # Debes encontrar esa parada.
+    #
+    # Si hay 10 personas esperando
+    # y capacity es 6:
+    #
+    # suben 6
+    # quedan 4 esperando
+    #
+    # Devuelve cuántas personas subieron.
+    #
+    # Si la parada no existe:
+    # devuelve 0.
+    def bus_arrives(self, stop_name, capacity):
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            personas = 0
+            while current is not None:
+                if current.value.name == stop_name:
+                    personas = current.value.waiting
+                    fuera = personas - capacity
+                    if personas < capacity:
+                        return personas
+                    else:
+                        return capacity
+                current = current.next
+            return 0
+                    
+        
+        
+
+
+    # 5. BUSIEST STOP
+    #
+    # Devuelve el NOMBRE de la parada
+    # con más personas esperando.
+    #
+    # Si la ruta está vacía:
+    # devuelve None.
+    def busiest_stop(self):
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            maximo = -999
+            max_parada = ""
+            while current is not None:
+                if current.value.waiting > maximo:
+                    maximo = current.value.waiting
+                    max_parada = current.value.name
+                current = current.next
+            return max_parada
+        
+        
+        
+        
+    # 6. REMOVE EMPTY STOPS
+    #
+    # Elimina TODAS las paradas
+    # que tengan 0 personas esperando.
+    #
+    # Ejemplo:
+    #
+    # A(0) -> B(5) -> C(0) -> D(2)
+    #
+    # resultado:
+    #
+    # B(5) -> D(2)
+    #
+    # No devuelve nada.
+    def remove_empty_stops(self): 
+      
+      if self.first is None: 
+        return None 
+      while self.first is not None and self.first.value.waiting == 0: 
+        self.first = self.first.next 
+        if self.first is None: 
+          self.last = None 
+      else: 
+        current_pos = 0 
+        prev = self.first 
+        current = self.first.next 
+        
+        while current is not None: 
+          if current.value.waiting == 0: 
+            prev.next = current.next
+            current = current.next #no se pone prev porque lo hemos elimiando
+          else:
+            prev = current
+            current = current.next #Si current NO tiene 0, tienes que avanzar prev y current. Si no, el bucle se queda atascado para siempre en ese nodo.
+
+
+    # 7. REVERSE ROUTE
+    #
+    # Invierte completamente la lista enlazada.
+    #
+    # Ejemplo:
+    #
+    # A -> B -> C -> D
+    #
+    # pasa a:
+    #
+    # D -> C -> B -> A
+    #
+    # IMPORTANTE:
+    # tienes que cambiar los enlaces.
+    # No puedes usar una lista normal de Python.
+    def reverse_route(self):
+
+      prev = None
+      current = self.first
+
+      while current is not None:
+          siguiente = current.next   # 1. Guardo el siguiente
+          current.next = prev        # 2. Invierto la flecha
+          prev = current             # 3. Avanzo prev
+          current = siguiente        # 4. Avanzo current
+
+      self.first = prev
+          
+
+
+    # 8. TO_LIST
+    #
+    # Devuelve una lista NORMAL de Python
+    # con los nombres de las paradas.
+    #
+    # Ejemplo:
+    #
+    # A -> B -> C
+    #
+    # devuelve:
+    #
+    # ["A", "B", "C"]
+    def to_list(self):
+        
+        paradas = []
+        
+        current = self.first
+        
+        while current is not None:
+          paradas.append(current.value.name)
+          current = current.next
+        return paradas
+        
+        
+ 
+def main():
+
+    print("========== CREANDO RUTA ==========")
+
+    route = BusRoute()
+
+    hospital = Stop("Hospital", 8)
+    university = Stop("University", 15)
+    airport = Stop("Airport", 3)
+    beach = Stop("Beach", 0)
+
+
+    # ==========================================
+    # 1. ADD STOP FIRST
+    # ==========================================
+
+    print("\n========== 1. ADD STOP FIRST ==========")
+
+    route.add_stop_first(airport)
+    route.add_stop_first(university)
+    route.add_stop_first(hospital)
+
+    print("Resultado esperado:")
+    print("Hospital -> University -> Airport")
+
+    print("\nResultado obtenido:")
+
+    current = route.first
+    while current is not None:
+        print(current.value.name, end=" -> ")
+        current = current.next
+    print("None")
+
+
+    # ==========================================
+    # 2. INSERT AFTER
+    # ==========================================
+
+    print("\n========== 2. INSERT AFTER ==========")
+
+    result = route.insert_after("University", beach)
+
+    print("¿Se insertó?")
+    print(result)
+    # Esperado: True
+
+    print("Resultado esperado:")
+    print("Hospital -> University -> Beach -> Airport")
+
+    print("\nResultado obtenido:")
+
+    current = route.first
+    while current is not None:
+        print(current.value.name, end=" -> ")
+        current = current.next
+    print("None")
+
+
+    # ==========================================
+    # 3. TOTAL WAITING
+    # ==========================================
+
+    print("\n========== 3. TOTAL WAITING ==========")
+
+    print("Resultado esperado:")
+    print(26)
+
+    print("Resultado obtenido:")
+    print(route.total_waiting())
+
+
+    # ==========================================
+    # 4. BUS ARRIVES
+    # ==========================================
+
+    print("\n========== 4. BUS ARRIVES ==========")
+
+    print("En University hay 15 personas.")
+    print("El autobús tiene capacidad para 10.")
+
+    people = route.bus_arrives("University", 15)
+
+    print("\nPersonas que subieron:")
+    print(people)
+    # Esperado: 10
+
+    print("Personas que deberían quedar en University:")
+    print(5)
+
+
+    # ==========================================
+    # 5. BUSIEST STOP
+    # ==========================================
+
+    print("\n========== 5. BUSIEST STOP ==========")
+
+    print("Resultado obtenido:")
+    print(route.busiest_stop())
+
+    # Después del bus:
+    #
+    # Hospital = 8
+    # University = 5
+    # Beach = 0
+    # Airport = 3
+    #
+    # Esperado: Hospital
+
+
+    # ==========================================
+    # 6. REMOVE EMPTY STOPS
+    # ==========================================
+
+    print("\n========== 6. REMOVE EMPTY STOPS ==========")
+
+    route.remove_empty_stops()
+
+    print("Resultado esperado:")
+    print("Hospital -> University -> Airport")
+
+    print("\nResultado obtenido:")
+
+    current = route.first
+
+    while current is not None:
+        print(current.value.name, end=" -> ")
+        current = current.next
+
+    print("None")
+
+
+    # ==========================================
+    # 7. REVERSE ROUTE
+    # ==========================================
+
+    print("\n========== 7. REVERSE ROUTE ==========")
+
+    route.reverse_route()
+
+    print("Resultado esperado:")
+    print("Airport -> University -> Hospital")
+
+    print("\nResultado obtenido:")
+
+    current = route.first
+
+    while current is not None:
+        print(current.value.name, end=" -> ")
+        current = current.next
+
+    print("None")
+
+
+    # ==========================================
+    # 8. TO LIST
+    # ==========================================
+
+    print("\n========== 8. TO LIST ==========")
+
+    print("Resultado esperado:")
+    print(["Airport", "University", "Hospital"])
+
+    print("Resultado obtenido:")
+    print(route.to_list())
+
+
+main() 

@@ -1,0 +1,261 @@
+class Song:
+    def __init__(self, title, artist, duration):
+        self.title = title
+        self.artist = artist
+        self.duration = duration
+
+    def __str__(self):
+        return f"{self.title} - {self.artist}: {self.duration} s"
+
+
+class Node:
+    def __init__(self, value, next=None):
+        self.value = value       # value será un objeto Song
+        self.next = next
+
+
+class ContainerBase:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def __str__(self):
+        result = ""
+        current = self.first
+
+        while current is not None:
+            result += f"[{current.value}] -> "
+            current = current.next
+
+        result += "None"
+        return result
+
+
+class Playlist(ContainerBase):
+
+    def __init__(self):
+        super().__init__() #super().__init__() sirve para ejecutar el constructor de la clase padre.
+        self.total_duracion = 0 #la duración total reproducida pertenece a la playlist completa, no a una canción concreta.
+
+        # Añade aquí cualquier atributo adicional
+        # que consideres necesario.
+
+
+    # 1. ADD SONG
+    #
+    # Añade AL FINAL de la lista la canción
+    # recibida por parámetro.
+    #
+    # song es un objeto Song.
+    #
+    # IMPORTANTE:
+    # Debes mantener correctamente:
+    # self.first
+    # self.last
+    def add_song(self, song):
+    
+        new_node = Node(song)
+        
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            self.last = new_node
+
+
+    # 2. GET SONG
+    #
+    # Devuelve la canción situada en la posición pos.
+    # Las posiciones empiezan en 0.
+    #
+    # Ejemplo:
+    #
+    # A -> B -> C
+    #
+    # get_song(0) -> A
+    # get_song(1) -> B
+    # get_song(2) -> C
+    #
+    # Si la posición no es válida:
+    # devuelve None.
+    def get_song(self, pos):
+        
+        if self.first is None:
+            return None
+            
+        if pos < 0:
+            return None
+        
+        current = self.first
+        contador = 0
+        
+        while current is not None:
+            contador += 1
+            current = current.next
+        
+        if pos > contador:
+            return None
+        
+        else:
+            current_pos = 0
+            current = self.first
+            
+            while current is not None and current_pos < pos:
+                current_pos += 1
+                current = current.next
+            
+            if current is None:
+                return None
+            else:
+                return current.value
+                
+        
+
+
+    # 3. PLAY SONG
+    #
+    # Elimina Y DEVUELVE la canción situada
+    # en la posición pos.
+    #
+    # Las posiciones empiezan en 0.
+    #
+    # Además, la duración de esa canción debe
+    # acumularse en el tiempo total reproducido.
+    #
+    # Si pos no es válida:
+    # devuelve None.
+    #
+    # MUY IMPORTANTE:
+    # piensa en todos estos casos:
+    #
+    # - lista vacía
+    # - eliminar la primera canción
+    # - eliminar una canción intermedia
+    # - eliminar la última canción
+    # - lista con UN SOLO nodo
+    #
+    # self.first y self.last deben quedar
+    # correctamente actualizados.
+    def play_song(self, pos):
+        
+        if self.first is None:
+            return None
+        
+        if pos < 0:
+            return None
+        
+        if pos == 0:
+            if self.first is None:
+                return None
+            else:
+                self.first = self.first.next
+                self.total_duracion += self.first.value.duration
+                return self.first.value
+                
+        else:
+            current_pos = 1
+            prev = self.first
+            current = self.first.next
+            
+            while current.next is not None and current_pos < pos:
+                prev = current
+                current = current.next
+            
+            self.total_duracion += current.value.duration
+            prev.next = current.next
+            self.last = prev.next
+            return current.value
+        
+        
+        
+
+
+    # 4. GET DURATION LEFT
+    #
+    # Devuelve la suma de las duraciones
+    # de TODAS las canciones que todavía
+    # permanecen en la lista.
+    #
+    # Ejemplo:
+    #
+    # 185 -> 354 -> 294
+    #
+    # devuelve:
+    # 833
+    def get_duration_left(self):
+        current = self.first
+        duracion = 0
+        
+        while current is not None:
+            duracion += current.value.duration
+            current = current.next
+        return duracion
+        
+
+
+    # 5. GET DURATION PLAYED
+    #
+    # Devuelve el tiempo total reproducido.
+    #
+    # Es decir, la suma de las duraciones
+    # de las canciones que hayan sido eliminadas
+    # mediante play_song().
+    def get_duration_played(self):
+        return self.total_duracion
+    
+    def merged_with(self, other):
+        new_playlist = Playlist()
+        current = self.first
+        
+        while current is not None:
+            new_playlist.add_song(current.value)
+            current = current.next
+        
+        puntero = other.first
+        
+        while puntero is not None:
+            new_playlist.add_song(puntero.value)
+            other = other.next
+        
+        return new_playlist
+        
+        
+        
+    
+
+def main():
+
+    pl = Playlist()
+
+    s1 = Song("Numb", "Linkin Park", 185)
+    s2 = Song("Bohemian Rhapsody", "Queen", 354)
+    s3 = Song("Billie Jean", "Michael Jackson", 294)
+
+    pl.add_song(s1)
+    pl.add_song(s2)
+    pl.add_song(s3)
+
+    print("PLAYLIST:")
+    print(pl)
+
+    print("\nCANCIÓN EN POSICIÓN 1:")
+    print(pl.get_song(1))
+    # Bohemian Rhapsody - Queen: 354 s
+
+    print("\nDURACIÓN PENDIENTE:")
+    print(pl.get_duration_left())
+    # 833
+
+    print("\nREPRODUCIMOS POSICIÓN 2:")
+    print(pl.play_song(2))
+    # Billie Jean - Michael Jackson: 294 s
+
+    print("\nDURACIÓN REPRODUCIDA:")
+    print(pl.get_duration_played())
+    # 294
+
+    print("\nPLAYLIST DESPUÉS:")
+    print(pl)
+
+
+main()

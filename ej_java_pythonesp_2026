@@ -148,9 +148,12 @@ class Playlist(ContainerBase):
             if self.first is None:
                 return None
             else:
+                antiguo_primero = self.first
                 self.first = self.first.next
-                self.total_duracion += self.first.value.duration
-                return self.first.value
+                if self.first is None:
+                    self.last = None
+                self.total_duracion += antiguo_primero.value.duration
+                return antiguo_primero.value
                 
         else:
             current_pos = 1
@@ -158,12 +161,14 @@ class Playlist(ContainerBase):
             current = self.first.next
             
             while current.next is not None and current_pos < pos:
+                current_pos += 1
                 prev = current
                 current = current.next
             
             self.total_duracion += current.value.duration
-            prev.next = current.next
-            self.last = prev.next
+            prev.next = current.next #decimos que prev.next es None
+            if current.next is None:
+                self.last = prev
             return current.value
         
         

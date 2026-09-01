@@ -1,0 +1,388 @@
+class WebPage:
+    def __init__(self, url, minutes):
+        self.url = url
+        self.minutes = minutes
+
+    def __str__(self):
+        return f"{self.url} ({self.minutes} min)"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class BrowserHistory:
+
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+
+    # Una página visitada pasa a formar parte del historial.
+    # Las páginas se conservan en el mismo orden en el que
+    # fueron visitadas.
+    def visit(self, page):
+        new_node = Node(page)
+        
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+            
+            
+
+
+    # Calcula cuánto tiempo se ha dedicado en total
+    # a las páginas que aparecen en el historial.
+    def total_time(self):
+        current = self.first
+        sumador = 0
+        while current is not None:
+            sumador += current.value.minutes
+            current = current.next
+        
+        return sumador
+        
+
+
+    # Permite recuperar la información de una página
+    # del historial a partir de su URL.
+    # Si no forma parte del historial, devuelve None.
+    def find_page(self, url):
+        
+        if self.first is None:
+            return None
+        
+        if self.first.value.url == url:
+            return self.first.value
+        
+        else:
+            current = self.first
+            
+            while current is not None:
+                if current.value.url == url:
+                    return current.value
+                current = current.next
+            return None
+
+
+    # El usuario quiere añadir una página al historial
+    # inmediatamente antes de otra página determinada.
+    #
+    # Devuelve True si la operación se pudo realizar
+    # y False si la página indicada no estaba en el historial.
+    def insert_before(self, target_url, new_page):
+        new_node = Node(new_page)
+        
+        if self.first is None:
+            return None
+        
+        elif self.first.value.url == target_url:
+            new_node.next = self.first
+            self.first.prev = new_node
+            self.first = new_node
+            return True
+        
+        else:
+            prev = None
+            puntero = self.first
+            current = self.first
+            
+            while current is not None:
+                if current.value.url == target_url:
+                    new_node.next = puntero
+                    puntero.prev = new_node
+                    new_node.prev = prev
+                    prev.next = new_node
+                    puntero = new_node
+                    return True
+                
+                prev = current   
+                current = current.next
+                puntero = puntero.next
+            
+            return False
+            
+        
+        
+
+
+    # El usuario quiere borrar del historial la primera
+    # aparición de una URL determinada.
+    #
+    # Devuelve la página eliminada o None si no se encuentra.
+    def remove_by_url(self, url):
+        
+        if self.first is None:
+            return None
+        elif self.first.value.url == url:
+            primer = self.first.value
+            self.first = self.first.next
+            if self.first is None:
+                self.last = None
+            else:
+                self.first.prev = None
+            return primer
+        else:
+            prev = self.first
+            current = self.first.next
+            
+            while current is not None:
+                if current.value.url == url:
+                    prev.next = current.next
+                    if current.next is None:
+                        self.last = prev
+                    else:
+                        current.next.prev = prev
+                    return current.value
+                prev = current
+                current = current.next
+            return None
+
+
+    # Devuelve la URL de la página en la que el usuario
+    # ha permanecido durante más tiempo.
+    #
+    # Si no hay historial, devuelve None.
+    def longest_visit(self):
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            max = ""
+            maximo = -9999
+        
+            while current is not None:
+                if current.value.minutes > maximo:
+                    maximo = current.value.minutes
+                    max = current.value.url
+                current = current.next
+            return max
+        
+
+
+    # Devuelve una lista de Python con las URLs del historial
+    # empezando por la página visitada más recientemente y
+    # terminando por la más antigua.
+    def urls_backwards(self):
+        
+        lista = []
+        
+        current = self.last
+        
+        while current is not None:
+            lista.append(current.value.url)
+            current = current.prev
+        
+        return lista
+        
+
+
+    # La primera y la última página del historial deben
+    # intercambiar sus posiciones.
+    #
+    # Deben intercambiarse los nodos, no únicamente
+    # la información almacenada en ellos.
+    def swap_first_last(self):
+
+        primero = self.last
+        ultimo = self.first
+
+        if self.first is None:
+            self.first = self.last = None
+
+        elif self.first.next is None:
+            return None
+
+        else:
+            antes = self.last.prev
+            despues = self.first.next
+
+            self.first = primero
+            primero.next = despues
+            despues.prev = primero
+            primero.prev = None
+
+            self.last = ultimo
+            ultimo.prev = antes
+            antes.next = ultimo
+            ultimo.next = None
+            
+                
+            
+            
+
+def main():
+
+    history = BrowserHistory()
+
+    google = WebPage("google.com", 4)
+    youtube = WebPage("youtube.com", 18)
+    instagram = WebPage("instagram.com", 7)
+    github = WebPage("github.com", 12)
+
+
+    # ==========================================
+    # 1. VISIT
+    # ==========================================
+
+    print("\n========== 1. VISIT ==========")
+
+    history.visit(google)
+    history.visit(youtube)
+    history.visit(instagram)
+
+    print("Esperado:")
+    print("google.com <-> youtube.com <-> instagram.com")
+
+    print("Obtenido:")
+
+    current = history.first
+    while current is not None:
+        print(current.value.url, end=" <-> ")
+        current = current.next
+    print("None")
+
+
+    # ==========================================
+    # 2. TOTAL TIME
+    # ==========================================
+
+    print("\n========== 2. TOTAL TIME ==========")
+
+    print("Esperado: 29")
+    print("Obtenido:", history.total_time())
+
+
+    # ==========================================
+    # 3. FIND PAGE
+    # ==========================================
+
+    print("\n========== 3. FIND PAGE ==========")
+
+    result = history.find_page("youtube.com")
+
+    print("Esperado:")
+    print("youtube.com (18 min)")
+
+    print("Obtenido:")
+    print(result)
+
+
+    # ==========================================
+    # 4. INSERT BEFORE
+    # ==========================================
+
+    print("\n========== 4. INSERT BEFORE ==========")
+
+    result = history.insert_before("youtube.com", github)
+
+    print("Esperado: True")
+    print("Obtenido:", result)
+
+    print("\nHistorial esperado:")
+    print("google.com <-> github.com <-> youtube.com <-> instagram.com")
+
+    print("Historial obtenido:")
+
+    current = history.first
+    while current is not None:
+        print(current.value.url, end=" <-> ")
+        current = current.next
+    print("None")
+
+
+    # ==========================================
+    # 5. REMOVE BY URL
+    # ==========================================
+
+    print("\n========== 5. REMOVE BY URL ==========")
+
+    removed = history.remove_by_url("youtube.com")
+
+    print("Página eliminada esperada:")
+    print("youtube.com (18 min)")
+
+    print("Página eliminada obtenida:")
+    print(removed)
+
+    print("\nHistorial esperado:")
+    print("google.com <-> github.com <-> instagram.com")
+
+    print("Historial obtenido:")
+
+    current = history.first
+    while current is not None:
+        print(current.value.url, end=" <-> ")
+        current = current.next
+    print("None")
+
+
+    # ==========================================
+    # 6. LONGEST VISIT
+    # ==========================================
+
+    print("\n========== 6. LONGEST VISIT ==========")
+
+    print("Esperado: github.com")
+    print("Obtenido:", history.longest_visit())
+
+
+    # ==========================================
+    # 7. URLS BACKWARDS
+    # ==========================================
+
+    print("\n========== 7. URLS BACKWARDS ==========")
+
+    print("Esperado:")
+    print(["instagram.com", "github.com", "google.com"])
+
+    print("Obtenido:")
+    print(history.urls_backwards())
+
+
+    # ==========================================
+    # 8. SWAP FIRST LAST
+    # ==========================================
+
+    print("\n========== 8. SWAP FIRST LAST ==========")
+
+    history.swap_first_last()
+
+    print("Esperado:")
+    print("instagram.com <-> github.com <-> google.com")
+
+    print("Obtenido:")
+
+    current = history.first
+    while current is not None:
+        print(current.value.url, end=" <-> ")
+        current = current.next
+    print("None")
+
+
+    # ==========================================
+    # COMPROBACIÓN FINAL HACIA ATRÁS
+    # ==========================================
+
+    print("\n========== COMPROBACIÓN INVERSA ==========")
+
+    print("Esperado:")
+    print("google.com <-> github.com <-> instagram.com")
+
+    print("Obtenido:")
+
+    current = history.last
+    while current is not None:
+        print(current.value.url, end=" <-> ")
+        current = current.prev
+    print("None")
+
+
+main()

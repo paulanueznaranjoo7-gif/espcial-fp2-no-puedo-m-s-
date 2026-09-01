@@ -1,0 +1,251 @@
+class Book:
+    def __init__(self, title, pages, rating):
+        self.title = title
+        self.pages = pages
+        self.rating = rating
+
+    def __str__(self):
+        return f"{self.title} - {self.pages} páginas - {self.rating}/10"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class ReadingList:
+
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+
+    # 1.
+    # Añade un libro al final de la lista de lectura.
+    def add_book(self, book):
+        new_node = Node(book)
+        
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+            
+
+
+    # 2. NUEVO
+    # Devuelve una nueva ReadingList que contiene únicamente
+    # los libros cuya puntuación sea mayor o igual que min_rating.
+    #
+    # La lista original no debe modificarse.
+    def filtered_by_rating(self, min_rating):
+        
+        buenoslibros = ReadingList()
+        
+        current = self.first
+        while current is not None:
+            if current.value.rating >= min_rating:
+                buenoslibros.add_book(current.value)
+            current = current.next
+        
+        return buenoslibros
+
+
+    # 3. NUEVO
+    # Desplaza el libro que está en la posición pos
+    # hasta el principio de la lista.
+    #
+    # Las posiciones empiezan en 0.
+    #
+    # Devuelve True si la posición existe
+    # y False en caso contrario.
+    def move_to_front(self, pos):
+
+        if self.first is None or pos < 0:
+            return False
+
+        current_pos = 0
+        current = self.first
+
+        while current is not None and current_pos < pos:
+            current = current.next
+            current_pos += 1
+
+        if current is None:
+            return False
+
+        # Ya está el primero
+        if current == self.first:
+            return True
+
+        # Desconectar current de su posición
+        current.prev.next = current.next
+
+        if current.next is not None:
+            current.next.prev = current.prev
+        else:
+            self.last = current.prev
+
+        # Colocar current al principio
+        current.prev = None
+        current.next = self.first
+        self.first.prev = current
+        self.first = current
+
+        return True
+                
+
+
+    # 4. NUEVO
+    # Devuelve True si la lista se lee exactamente igual
+    # desde el principio hacia el final que desde el final
+    # hacia el principio, comparando los títulos.
+    #
+    # Ejemplo:
+    # ["A", "B", "C", "B", "A"] -> True
+    # ["A", "B", "C"] -> False
+    def is_palindrome(self):
+        
+        if self.first is None:
+            return False
+        else:
+            primero = self.first
+            ultimo = self.last
+            
+            while primero is not None and ultimo is not None and primero.value.title == ultimo.value.title:
+                primero = primero.next
+                ultimo = ultimo.prev
+            if primero is not None and ultimo is not None and primero.value.title != ultimo.value.title:
+                return False
+    
+            return True
+      
+
+
+    # 5.
+    # Crea y devuelve una ReadingList a partir de una lista
+    # normal de Python.
+    #
+    # Cada elemento de books será una tupla:
+    # (title, pages, rating)
+    #
+    # Ejemplo:
+    # [
+    #   ("Dune", 600, 9),
+    #   ("1984", 328, 8)
+    # ]
+    @classmethod
+    def from_list(cls, books):
+
+        libro = cls()
+        
+        for i in books:
+            titulo = i[0]
+            pagina = i[1]
+            nota = i[2]
+            book = Book(titulo, pagina, nota) #estoy creando un book, no un node, pongo book
+            libro.add_book(book)
+                
+        return libro
+
+def main():
+
+    books = [
+        ("Dune", 600, 9),
+        ("1984", 328, 8),
+        ("It", 1100, 7),
+        ("Hamlet", 250, 9),
+        ("Dune", 600, 9)
+    ]
+
+    reading = ReadingList.from_list(books)
+
+
+    print("\n========== 1. FROM LIST ==========")
+
+    print("Esperado:")
+    print("Dune <-> 1984 <-> It <-> Hamlet <-> Dune")
+
+    print("Obtenido:")
+
+    current = reading.first
+    while current is not None:
+        print(current.value.title, end=" <-> ")
+        current = current.next
+    print("None")
+
+
+    print("\n========== 2. FILTERED BY RATING ==========")
+
+    filtered = reading.filtered_by_rating(9)
+
+    print("Esperado:")
+    print("Dune <-> Hamlet <-> Dune")
+
+    print("Obtenido:")
+
+    current = filtered.first
+    while current is not None:
+        print(current.value.title, end=" <-> ")
+        current = current.next
+    print("None")
+
+
+    print("\n========== 3. MOVE TO FRONT ==========")
+
+    result = reading.move_to_front(3)
+
+    print("Esperado:")
+    print(True)
+    print("Obtenido:")
+    print(result)
+
+    print("\nLista esperada:")
+    print("Hamlet <-> Dune <-> 1984 <-> It <-> Dune")
+
+    print("Lista obtenida:")
+
+    current = reading.first
+    while current is not None:
+        print(current.value.title, end=" <-> ")
+        current = current.next
+    print("None")
+
+
+    print("\n========== 4. PALINDROME ==========")
+
+    palindrome_books = [
+        ("A", 100, 8),
+        ("B", 200, 7),
+        ("C", 300, 9),
+        ("B", 150, 6),
+        ("A", 500, 10)
+    ]
+
+    palindrome_list = ReadingList.from_list(palindrome_books)
+
+    print("Esperado:")
+    print(True)
+
+    print("Obtenido:")
+    print(palindrome_list.is_palindrome())
+
+
+    print("\n========== 5. COMPROBACIÓN INVERSA ==========")
+
+    print("Esperado:")
+    print("Dune <-> It <-> 1984 <-> Dune <-> Hamlet")
+
+    print("Obtenido:")
+
+    current = reading.last
+    while current is not None:
+        print(current.value.title, end=" <-> ")
+        current = current.prev
+    print("None")
+
+
+main()

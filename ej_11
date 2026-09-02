@@ -1,0 +1,371 @@
+class Product:
+    def __init__(self, name, price, stock):
+        self.name = name
+        self.price = price
+        self.stock = stock
+
+    def __str__(self):
+        return f"{self.name} - {self.price}€ - stock: {self.stock}"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class Inventory:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+
+    # 1.
+    # Crea un Inventory a partir de una lista de tuplas:
+    # (nombre, precio, stock)
+    @classmethod
+    def from_list(cls, products):
+        
+        inventor = cls()
+        
+        for tupla in products:
+            name = tupla[0]
+            price = tupla[1]
+            stock = tupla[2]
+            producto = Product(name, price, stock)
+            new_node = Node(producto)
+            if inventor.first is None:
+                inventor.first = inventor.last = new_node
+            else:
+                inventor.last.next = new_node
+                new_node.prev = inventor.last 
+                inventor.last = new_node
+        
+        return inventor
+        
+    # 2. DIFÍCIL / NUEVO
+    # Busca el producto con mayor precio y lo elimina
+    # del inventario.
+    #
+    # Devuelve el Product eliminado.
+    # Si el inventario está vacío, devuelve None.
+    #
+    # Si hay varios productos con el mismo precio máximo,
+    # elimina solamente el primero que aparezca.
+    def remove_most_expensive(self):
+        
+        prev = None
+        current = self.first
+        maximo = -999
+        max = None
+        while current is not None:
+            if current.value.price > maximo:
+                maximo = current.value.price
+                max = current
+            prev = current
+            current = current.next
+        
+        
+        
+        if max.prev is None:
+            max = None
+            primero = self.first
+            self.first = self.first.next
+            self.first.prev = None
+            return primero.value
+        else:
+            max.prev.next = max.next
+            if max.next is None:
+                self.last = prev
+            return max.value
+
+
+    # 3. DIFÍCIL / NUEVO
+    # Intercambia de posición los productos que están
+    # en las posiciones pos1 y pos2.
+    #
+    # Las posiciones empiezan en 0.
+    #
+    # Devuelve True si ambas posiciones existen.
+    # Devuelve False en caso contrario.
+    def swap_positions(self, pos1, pos2):
+        
+        if pos1 == pos2:
+            return True
+        
+        if pos1 < 0 or pos2 < 0:
+            return False
+        
+        current = self.first
+        contador = 0
+        while current is not None:
+            contador += 1
+            current = current.next
+        
+        if contador <= pos1 or contador <= pos2:
+            return False
+            
+        puntero = self.first
+        current = self.first
+        current_pos = 0
+        while current is not None:
+            if current_pos == pos1:
+                value1 = current.value
+            elif current_pos == pos2:
+                value2 = current.value
+            current = current.next
+            current_pos += 1
+        
+        current = self.first
+        current_pos = 0
+        while current is not None:
+            if current_pos == pos1:
+                current.value = value2
+            elif current_pos == pos2:
+                current.value = value1
+            
+            current_pos += 1
+            current = current.next
+        return True   
+            
+        
+
+
+    # 4. DIFÍCIL / NUEVO
+    # Busca el primer producto cuyo stock sea 0 y lo mueve
+    # al final del inventario.
+    #
+    # Devuelve True si encontró uno.
+    # Devuelve False si no existe ninguno.
+    def move_first_out_of_stock_to_end(self):
+
+        current = self.first
+
+        while current is not None:
+
+            if current.value.stock == 0:
+
+                # Si ya es el último, no hay que moverlo
+                if current == self.last:
+                    return True
+
+                # Si es el primero
+                if current == self.first:
+                    self.first = current.next
+                    self.first.prev = None
+
+                # Si está en medio
+                else:
+                    current.prev.next = current.next
+                    current.next.prev = current.prev
+
+                #colocarlo al final
+                self.last.next = current
+                current.prev = self.last
+                current.next = None
+                self.last = current
+
+                return True
+
+            current = current.next
+
+        return False
+        
+
+
+    # 5.
+    # Devuelve el número de productos que hay actualmente
+    # en el inventario.
+    @property
+    def size(self):
+        current = self.first
+        contador = 0
+        while current is not None:
+            contador += 1
+            current = current.next
+        return contador
+
+
+    # Al asignar inventory.size = n:
+    #
+    # Si n < 0, no hace nada.
+    # Si n >= tamaño actual, no hace nada.
+    # Si n < tamaño actual, conserva únicamente
+    # los primeros n productos.
+    @size.setter
+    def size(self, n):
+        
+        if n < 0:
+            return
+        
+        current = self.first
+        contador = 0
+        while current is not None:
+            contador += 1
+            current = current.next
+      
+        if n >= contador:
+            return
+        
+        elif n < contador:
+            current = self.first
+            tamaño = 1
+            
+            while current is not None and n > tamaño:
+                tamaño += 1
+                current = current.next
+            if current.next is not None:
+                current.next = None
+                self.last = current
+            
+
+def print_inventory(inventory):
+    current = inventory.first
+
+    while current is not None:
+        print(current.value.name, end="")
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    data = [
+        ("Laptop", 900, 4),
+        ("Mouse", 25, 0),
+        ("Monitor", 300, 2),
+        ("Keyboard", 80, 0),
+        ("Tablet", 500, 3)
+    ]
+
+    # ============================
+    # 1. FROM_LIST
+    # ============================
+
+    inventory = Inventory.from_list(data)
+
+    print("\n--- FROM_LIST ---")
+
+    print("Esperado:")
+    print("Laptop <-> Mouse <-> Monitor <-> Keyboard <-> Tablet")
+
+    print("Obtenido:")
+    print_inventory(inventory)
+
+
+    # ============================
+    # 2. SIZE
+    # ============================
+
+    print("\n--- SIZE ---")
+
+    print("Esperado: 5")
+    print("Obtenido:", inventory.size)
+
+
+    # ============================
+    # 3. REMOVE MOST EXPENSIVE
+    # ============================
+
+    removed = inventory.remove_most_expensive()
+
+    print("\n--- REMOVE MOST EXPENSIVE ---")
+
+    print("Producto eliminado esperado:")
+    print("Laptop")
+
+    print("Producto eliminado obtenido:")
+    print(removed.name if removed is not None else None)
+
+    print("Inventario esperado:")
+    print("Mouse <-> Monitor <-> Keyboard <-> Tablet")
+
+    print("Inventario obtenido:")
+    print_inventory(inventory)
+
+
+    # ============================
+    # 4. SWAP POSITIONS
+    # ============================
+
+    result = inventory.swap_positions(0, 2)
+
+    print("\n--- SWAP POSITIONS ---")
+
+    print("Resultado esperado: True")
+    print("Resultado obtenido:", result)
+
+    print("Inventario esperado:")
+    print("Keyboard <-> Monitor <-> Mouse <-> Tablet")
+
+    print("Inventario obtenido:")
+    print_inventory(inventory)
+
+
+    # ============================
+    # 5. MOVE OUT OF STOCK
+    # ============================
+
+    result = inventory.move_first_out_of_stock_to_end()
+
+    print("\n--- MOVE OUT OF STOCK ---")
+
+    print("Resultado esperado: True")
+    print("Resultado obtenido:", result)
+
+    print("Inventario esperado:")
+    print("Monitor <-> Mouse <-> Tablet <-> Keyboard")
+
+    print("Inventario obtenido:")
+    print_inventory(inventory)
+
+
+    # ============================
+    # 6. SETTER
+    # ============================
+
+    inventory.size = 2
+
+    print("\n--- SIZE SETTER ---")
+
+    print("Inventario esperado:")
+    print("Monitor <-> Mouse")
+
+    print("Inventario obtenido:")
+    print_inventory(inventory)
+
+    print("Tamaño esperado: 2")
+    print("Tamaño obtenido:", inventory.size)
+
+
+    # ============================
+    # COMPROBAR PREV
+    # ============================
+
+    print("\n--- RECORRIDO INVERSO ---")
+
+    print("Esperado:")
+    print("Mouse <-> Monitor")
+
+    print("Obtenido:")
+
+    current = inventory.last
+
+    while current is not None:
+        print(current.value.name, end="")
+
+        if current.prev is not None:
+            print(" <-> ", end="")
+
+        current = current.prev
+
+    print()
+
+
+main()

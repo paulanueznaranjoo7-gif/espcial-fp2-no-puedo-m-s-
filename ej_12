@@ -1,0 +1,395 @@
+class Booking:
+    def __init__(self, guest, nights, vip):
+        self.guest = guest
+        self.nights = nights
+        self.vip = vip
+
+    def __str__(self):
+        return f"{self.guest} - {self.nights} noches - VIP: {self.vip}"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class HotelQueue:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+
+    # Método auxiliar
+    def add_booking(self, booking):
+        new_node = Node(booking)
+
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+
+
+    # ==========================================
+    # 1. CLASSMETHOD — DIFERENTE
+    # ==========================================
+    #
+    # Recibe una lista de objetos Booking.
+    #
+    # Devuelve un NUEVO HotelQueue que contiene
+    # únicamente las reservas VIP.
+    #
+    # Debe conservar el orden original.
+    #
+    # Si no hay ninguna reserva VIP, devuelve
+    # un HotelQueue vacío.
+    @classmethod
+    def vip_queue(cls, bookings):
+        hotel_vip = HotelQueue()
+     
+     
+        for i in bookings:
+            if i.vip == True:
+                hotel_vip.add_booking(i)
+            
+        return hotel_vip
+            
+    
+
+
+    # ==========================================
+    # 2. DIFÍCIL
+    # ==========================================
+    #
+    # Busca la PRIMERA reserva cuyo número de noches
+    # sea mayor que max_nights.
+    #
+    # Si la encuentra, la elimina de la cola y
+    # devuelve el objeto Booking eliminado.
+    #
+    # Si no encuentra ninguna, devuelve None.
+    def remove_first_long_stay(self, max_nights):
+        
+        if self.first is None:
+            return None
+        elif self.first.value.nights > max_nights:
+            eliminado = self.first.value
+            self.first = self.first.next
+            if self.first is not None:
+                self.first.prev = None
+            else:
+                self.last = None
+            return eliminado
+        else:
+            prev = self.first
+            current = self.first.next
+            
+            while current.next is not None:
+                if current.value.nights > max_nights:
+                    prev.next = current.next
+                    current.next.prev = prev
+                    return current.value
+                prev = current
+                current = current.next
+            
+            if current.value.nights > max_nights:
+                prev.next = None
+                self.last = prev
+                return current.value
+                
+
+
+    # ==========================================
+    # 3. DIFÍCIL / NUEVO
+    # ==========================================
+    #
+    # Busca la reserva con MENOR número de noches
+    # y la mueve al PRINCIPIO de la cola.
+    #
+    # Las demás reservas deben conservar su orden.
+    #
+    # Si hay empate, utiliza la primera que encuentre.
+    #
+    # Si la cola está vacía, devuelve False.
+    #
+    # En cualquier otro caso, devuelve True.
+    def move_shortest_to_front(self):
+        
+        if self.first is None:
+            return False
+        else:
+            minimo = None
+            min = 100000
+            current = self.first
+            while current is not None:
+                if current.value.nights < min:
+                    min = current.value.nights
+                    minimo = current
+                    siguiente = minimo.next
+                    anterior = minimo.prev
+                current = current.next
+            if minimo == self.first:
+                return True
+            if self.last == minimo:
+                self.last = self.last.prev
+                self.last.next = None
+                minimo.next = self.first
+                self.first.prev = minimo
+                self.first = minimo
+                minimo.prev = None
+                return True
+            else:
+                siguiente.prev = anterior
+                anterior.next = siguiente
+                minimo.next = self.first
+                self.first.prev = minimo
+                self.first = minimo
+                minimo.prev = None
+                return True
+
+    # ==========================================
+    # 4.
+    # ==========================================
+    #
+    # Devuelve cuántas noches hay reservadas
+    # en total entre todas las reservas.
+    #
+    # Si la cola está vacía, devuelve 0.
+    def total_nights(self):
+        
+        if self.first is None:
+            return 0
+        
+        current = self.first
+        noches = 0
+        
+        while current is not None:
+            noches += current.value.nights
+            current = current.next
+        
+        return noches
+
+
+    # ==========================================
+    # 5. PROPERTY
+    # ==========================================
+
+    @property
+    def size(self):
+        
+        tamaño = 0
+        current = self.first
+        
+        while current is not None:
+            tamaño += 1
+            current = current.next
+        return tamaño
+
+
+    # Al hacer:
+    #
+    # queue.size = n
+    #
+    # Si n < 0:
+    #     no modifica nada.
+    #
+    # Si n >= tamaño actual:
+    #     no modifica nada.
+    #
+    # Si n < tamaño actual:
+    #     conserva únicamente las ÚLTIMAS n reservas.
+    #
+    # Ejemplo:
+    #
+    # A <-> B <-> C <-> D
+    #
+    # queue.size = 2
+    #
+    # C <-> D
+
+    @size.setter
+    def size(self, n):
+        if self.first is None:
+            return
+        
+        if n < 0:
+            return
+        current = self.first
+        tamaño = 0
+        while current is not None:
+            tamaño += 1
+            current = current.next
+            
+        if n >= tamaño:
+            return
+        elif n < tamaño:
+            current = self.last
+            contador = 1
+            while current.prev is not None and contador < n:
+                current = current.prev
+                contador += 1
+            self.first = current
+            self.first.prev = None
+          
+                
+        
+    
+def print_queue(queue):
+    current = queue.first
+
+    while current is not None:
+        print(current.value.guest, end="")
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    # Creamos directamente objetos Booking.
+    # OJO: aquí NO hay tuplas.
+
+    bookings = [
+        Booking("Ana", 5, False),
+        Booking("Luis", 3, True),
+        Booking("Marta", 8, True),
+        Booking("Pedro", 3, False),
+        Booking("Sara", 1, True)
+    ]
+
+
+    # ============================
+    # CLASSMETHOD VIP_QUEUE
+    # ============================
+
+    queue = HotelQueue.vip_queue(bookings)
+
+    print("\n--- VIP QUEUE ---")
+
+    print("Esperado:")
+    print("Luis <-> Marta <-> Sara")
+
+    print("Obtenido:")
+    print_queue(queue)
+
+
+    # ============================
+    # SIZE
+    # ============================
+
+    print("\n--- SIZE ---")
+
+    print("Esperado: 3")
+    print("Obtenido:", queue.size)
+
+
+    # ============================
+    # REMOVE FIRST LONG STAY
+    # ============================
+
+    removed = queue.remove_first_long_stay(6)
+
+    print("\n--- REMOVE FIRST LONG STAY ---")
+
+    print("Reserva eliminada esperada:")
+    print("Marta")
+
+    print("Reserva eliminada obtenida:")
+    print(removed.guest if removed is not None else None)
+
+    print("Cola esperada:")
+    print("Luis <-> Sara")
+
+    print("Cola obtenida:")
+    print_queue(queue)
+
+
+    # Añadimos dos reservas para continuar las pruebas
+
+    queue.add_booking(Booking("Elena", 1, True))
+    queue.add_booking(Booking("Carlos", 0, True))
+
+    # Ahora:
+    #
+    # Luis(2) <-> Sara(6) <-> Elena(1) <-> Carlos(4)
+
+
+    # ============================
+    # MOVE SHORTEST TO FRONT
+    # ============================
+
+    result = queue.move_shortest_to_front()
+
+    print("\n--- MOVE SHORTEST TO FRONT ---")
+
+    print("Resultado esperado: True")
+    print("Resultado obtenido:", result)
+
+    print("Cola esperada:")
+    print("Elena <-> Luis <-> Sara <-> Carlos")
+
+    print("Cola obtenida:")
+    print_queue(queue)
+
+
+    # ============================
+    # TOTAL NIGHTS
+    # ============================
+
+    print("\n--- TOTAL NIGHTS ---")
+
+    print("Esperado: 13")
+    print("Obtenido:", queue.total_nights())
+
+
+    # ============================
+    # SIZE SETTER
+    # ============================
+
+    queue.size = 2
+
+    print("\n--- SIZE SETTER ---")
+
+    print("Cola esperada:")
+    print("Sara <-> Carlos")
+
+    print("Cola obtenida:")
+    print_queue(queue)
+
+    print("Tamaño esperado: 2")
+    print("Tamaño obtenido:", queue.size)
+
+
+    # ============================
+    # RECORRIDO INVERSO
+    # ============================
+
+    print("\n--- RECORRIDO INVERSO ---")
+
+    print("Esperado:")
+    print("Carlos <-> Sara")
+
+    print("Obtenido:")
+
+    current = queue.last
+
+    while current is not None:
+
+        print(current.value.guest, end="")
+
+        if current.prev is not None:
+            print(" <-> ", end="")
+
+        current = current.prev
+
+    print()
+
+
+main()

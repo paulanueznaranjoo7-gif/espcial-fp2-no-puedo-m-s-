@@ -1,0 +1,241 @@
+class Patient:
+    def __init__(self, name, severity, waiting_time):
+        self.name = name
+        self.severity = severity
+        self.waiting_time = waiting_time
+
+    def __str__(self):
+        return f"{self.name} - gravedad {self.severity} - {self.waiting_time} min"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class EmergencyRoom:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def add_patient(self, patient):
+        new_node = Node(patient)
+
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+    
+    @classmethod
+    def from_critical(cls, patients):
+        
+        emergencia = cls()
+        
+        for objetos in patients:
+            if objetos.severity >= 8:
+                emergencia.add_patient(objetos)
+            
+        return emergencia
+    
+    def waiting_position(self, name):
+        
+        current = self.first
+        posicion = 0
+        while current is not None:
+            if current.value.name == name:
+                return posicion
+            current = current.next
+            posicion += 1
+        return -1
+    
+    def remove_after(self, name):
+        
+        if self.first is None:
+            return None
+        if self.first.next is None:
+            self.first = self.last 
+        else:
+            prev = self.first
+            current = self.first.next
+            
+            while current.next is not None:
+                if prev.value.name == name:
+                    siguiente = current.next
+                    prev.next = siguiente
+                    siguiente.prev = prev
+                    eliminado = current.value
+                    prev.next = current.next
+                    return eliminado
+                prev = current
+                current = current.next
+              
+            if prev.value.name == name:
+                prev.next = None
+                self.last = prev
+            return current.value
+    
+    def count_more_severe_than_previous(self):
+        
+        if self.first is None:
+            return 0
+        elif self.first.next is None:
+            return None
+        else:
+            prev = self.first
+            current = self.first.next
+            contador = 0
+            
+            while current is not None:
+                if prev.value.severity < current.value.severity:
+                    contador += 1
+                prev = current
+                current = current.next
+            return contador
+            
+    @property
+    def first_waiting_time(self):
+        
+        if self.first is None:
+            return None
+        else:
+            return self.first.value.waiting_time
+    
+    @first_waiting_time.setter
+    def first_waiting_time(self, time):
+        
+        if self.first is None:
+            return None
+        else:
+            self.first.value.waiting_time = time
+        
+    
+def print_room(room):
+    current = room.first
+
+    while current is not None:
+        print(
+            f"{current.value.name}({current.value.severity}, "
+            f"{current.value.waiting_time} min)",
+            end=""
+        )
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    # =====================================
+    # 1. CLASSMETHOD
+    # =====================================
+
+    patients = [
+        Patient("Ana", 4, 25),
+        Patient("Luis", 9, 40),
+        Patient("Marta", 6, 15),
+        Patient("Pedro", 8, 50),
+        Patient("Elena", 3, 20)
+    ]
+
+    critical = EmergencyRoom.from_critical(patients)
+
+    print("\n--- FROM CRITICAL ---")
+    print("Esperado:")
+    print("Luis(9, 40 min) <-> Pedro(8, 50 min)")
+    print("Obtenido:")
+    print_room(critical)
+
+
+    # Creamos la lista para las siguientes pruebas
+
+    room = EmergencyRoom()
+
+    room.add_patient(Patient("Ana", 4, 25))
+    room.add_patient(Patient("Luis", 9, 40))
+    room.add_patient(Patient("Marta", 6, 15))
+    room.add_patient(Patient("Pedro", 8, 50))
+    room.add_patient(Patient("Elena", 3, 20))
+
+
+    # =====================================
+    # 2. WAITING POSITION
+    # =====================================
+
+    print("\n--- WAITING POSITION ---")
+
+    print("Esperado: 2")
+    print("Obtenido:", room.waiting_position("Marta"))
+
+    print("Esperado: -1")
+    print("Obtenido:", room.waiting_position("Carlos"))
+
+
+    # =====================================
+    # 3. REMOVE AFTER
+    # =====================================
+
+    print("\n--- REMOVE AFTER ---")
+
+    removed = room.remove_after("Luis")
+
+    print("Eliminado esperado: Marta")
+    print("Eliminado obtenido:",
+          removed.name if removed is not None else None)
+
+    print("Lista esperada:")
+    print("Ana(4, 25 min) <-> Luis(9, 40 min) <-> Pedro(8, 50 min) <-> Elena(3, 20 min)")
+
+    print("Lista obtenida:")
+    print_room(room)
+
+
+    # =====================================
+    # 4. COUNT MORE SEVERE THAN PREVIOUS
+    # =====================================
+
+    print("\n--- COUNT MORE SEVERE ---")
+
+    print("Esperado: 1")
+    print("Obtenido:",
+          room.count_more_severe_than_previous())
+
+
+    # =====================================
+    # 5. PROPERTY GETTER
+    # =====================================
+
+    print("\n--- FIRST WAITING TIME GETTER ---")
+
+    print("Esperado: 25")
+    print("Obtenido:", room.first_waiting_time)
+
+
+    # =====================================
+    # 5. PROPERTY SETTER
+    # =====================================
+
+    print("\n--- FIRST WAITING TIME SETTER ---")
+
+    room.first_waiting_time = 60
+
+    print("Esperado: 60")
+    print("Obtenido:", room.first_waiting_time)
+
+    print("Lista esperada:")
+    print("Ana(4, 60 min) <-> Luis(9, 40 min) <-> Pedro(8, 50 min) <-> Elena(3, 20 min)")
+
+    print("Lista obtenida:")
+    print_room(room)
+
+
+main()    
+        
+    

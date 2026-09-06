@@ -1,0 +1,364 @@
+class Flight:
+    def __init__(self, code, destination, delay, passengers):
+        self.code = code
+        self.destination = destination
+        self.delay = delay
+        self.passengers = passengers
+
+    def __str__(self):
+        return f"{self.code} - {self.destination} - {self.delay} min - {self.passengers} pasajeros"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class AirportBoard:
+    def __init__(self):
+        self.first = None
+        self.last = None
+        self.summary = {
+            "total_flights": 0,
+            "total_passengers": 0,
+            "most_delayed": None
+        }
+
+    def add_flight(self, flight):
+        new_node = Node(flight)
+
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+    
+    @classmethod
+    def delayed_flights(cls, flight, minimum_delay):
+        
+        lista_atrasados = AirportBoard()
+        
+        for vuelo in flight:
+            if vuelo.delay >= minimum_delay:
+                lista_atrasados.add_flight(vuelo)
+        return lista_atrasados
+    
+    def remove_between(self, code1, code2):
+        
+        if self.first is None:
+            return 0
+        else:
+            
+            current = self.first
+            distancia = -1
+            
+            while current is not None:
+                if current.value.code != code1:
+                    current = current.next
+                else:
+                    codeprimero = current
+                    while current.value.code != code2:
+                        distancia += 1
+                        current = current.next
+                    
+                    codeprimero.next = current
+                    return distancia
+    
+    def move_most_delayed_to_end(self):
+        
+        current = self.first
+        max = -9999
+        maximo = None
+        
+        while current is not None:
+            if current.value.delay > max:
+                max = current.value.delay
+                maximo = current
+            current = current.next
+        
+        if maximo.value == self.last.value:
+            return True
+        
+        ultimo = self.last
+        maximo.prev.next = maximo.next
+        maximo.next.prev = maximo.prev
+        self.last.next = maximo
+        maximo.prev = self.last
+        self.last = maximo
+        maximo.prev = ultimo
+        ultimo.next = maximo
+        maximo.next = None
+        return True
+    
+    def passengers_after(self, code):
+        
+        if self.first is None:
+            return -1
+        elif self.first.next is None:
+            return -1
+        
+        else:
+    
+            current = self.first
+            
+            while current is not None and current.value.code != code:
+                current = current.next
+            
+            nodo = current
+            if current is None:
+                return -1
+        
+            else:
+                numero = 0
+                nodo = nodo.next
+                while nodo is not None:
+                    numero += nodo.value.passengers
+                    nodo = nodo.next
+                return numero
+    
+    @property
+    def average_delay(self):
+        
+        if self.first is None:
+            return None
+        elif self.first.next is None:
+            return self.first.next.delay
+        else:
+            contador = 0.0
+            suma = 0.0
+            current = self.first
+            
+            while current is not None:
+                suma += current.value.delay
+                contador += 1
+                current = current.next
+            
+            return suma // contador
+    
+    @average_delay.setter
+    def average_delay(self, numero):
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            
+            while current is not None:
+                if current.value.delay < numero:
+                    current.value.delay = numero
+                current = current.next
+            
+            return 
+    
+
+    def create_summary(self):
+        
+        if self.first is None:
+            self.summary["total_flights"] = 0
+            self.summary["total_passengers"] = 0
+            self.summary["most_delayed"] = None
+            return self.summary
+            
+        else:
+            max = -9999
+            maximo = None
+            
+            current = self.first
+            
+            while current is not None:
+                if current.value.delay > max:
+                    max = current.value.delay
+                    maximo = current.value
+                self.summary["total_flights"] += 1
+                self.summary["total_passengers"] += current.value.passengers
+                current = current.next
+            
+            self.summary["most_delayed"] = maximo.code
+            return self.summary
+            
+
+def print_board(board):
+    current = board.first
+
+    while current is not None:
+        print(
+            f"{current.value.code}({current.value.delay} min, "
+            f"{current.value.passengers} pasajeros)",
+            end=""
+        )
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    flights = [
+        Flight("IB10", "Madrid", 15, 120),
+        Flight("VY20", "Barcelona", 45, 180),
+        Flight("UX30", "Sevilla", 10, 90),
+        Flight("FR40", "Roma", 60, 200),
+        Flight("BA50", "Londres", 25, 150)
+    ]
+
+
+    # =====================================
+    # 1. DELAYED FLIGHTS
+    # =====================================
+
+    delayed = AirportBoard.delayed_flights(flights, 30)
+
+    print("\n--- DELAYED FLIGHTS ---")
+
+    print("Esperado:")
+    print("VY20(45 min, 180 pasajeros) <-> FR40(60 min, 200 pasajeros)")
+
+    print("Obtenido:")
+    print_board(delayed)
+
+
+    # =====================================
+    # Creamos otro AirportBoard
+    # para las siguientes pruebas
+    # =====================================
+
+    board = AirportBoard()
+
+    for flight in flights:
+        board.add_flight(flight)
+
+
+    # =====================================
+    # 2. REMOVE BETWEEN
+    # =====================================
+
+    print("\n--- REMOVE BETWEEN ---")
+
+    removed = board.remove_between("IB10", "FR40")
+
+    print("Número eliminado esperado: 2")
+    print("Número eliminado obtenido:", removed)
+
+    print("Lista esperada:")
+    print("IB10(15 min, 120 pasajeros) <-> FR40(60 min, 200 pasajeros) <-> BA50(25 min, 150 pasajeros)")
+
+    print("Lista obtenida:")
+    print_board(board)
+
+
+    # =====================================
+    # Volvemos a crear el board
+    # =====================================
+
+    board = AirportBoard()
+
+    for flight in flights:
+        board.add_flight(flight)
+
+
+    # =====================================
+    # 3. MOVE MOST DELAYED TO END
+    # =====================================
+
+    print("\n--- MOVE MOST DELAYED TO END ---")
+
+    result = board.move_most_delayed_to_end()
+
+    print("Resultado esperado: True")
+    print("Resultado obtenido:", result)
+
+    print("Lista esperada:")
+    print(
+        "IB10(15 min, 120 pasajeros) <-> "
+        "VY20(45 min, 180 pasajeros) <-> "
+        "UX30(10 min, 90 pasajeros) <-> "
+        "BA50(25 min, 150 pasajeros) <-> "
+        "FR40(60 min, 200 pasajeros)"
+    )
+
+    print("Lista obtenida:")
+    print_board(board)
+
+
+    # =====================================
+    # 4. PASSENGERS AFTER
+    # =====================================
+
+    print("\n--- PASSENGERS AFTER ---")
+
+    print("Esperado para VY20: 440")
+    print("Obtenido:", board.passengers_after("VY20"))
+
+    print("Esperado para FR40: 0")
+    print("Obtenido:", board.passengers_after("FR40"))
+
+    print("Esperado para ZZ99: -1")
+    print("Obtenido:", board.passengers_after("ZZ99"))
+
+
+    # =====================================
+    # 5. AVERAGE DELAY - GETTER
+    # =====================================
+
+    print("\n--- AVERAGE DELAY GETTER ---")
+
+    print("Esperado: 31.0")
+    print("Obtenido:", board.average_delay)
+
+
+    # =====================================
+    # AVERAGE DELAY - SETTER
+    # =====================================
+
+    print("\n--- AVERAGE DELAY SETTER ---")
+
+    board.average_delay = 30
+
+    print("Lista esperada:")
+    print(
+        "IB10(30 min, 120 pasajeros) <-> "
+        "VY20(45 min, 180 pasajeros) <-> "
+        "UX30(30 min, 90 pasajeros) <-> "
+        "BA50(30 min, 150 pasajeros) <-> "
+        "FR40(60 min, 200 pasajeros)"
+    )
+
+    print("Lista obtenida:")
+    print_board(board)
+
+    print("Nueva media esperada: 39.0")
+    print("Nueva media obtenida:", board.average_delay)
+
+
+    # =====================================
+    # 6. CREATE SUMMARY
+    # =====================================
+
+    print("\n--- CREATE SUMMARY ---")
+
+    result = board.create_summary()
+
+    print("Esperado:")
+    print({
+        "total_flights": 5,
+        "total_passengers": 740,
+        "most_delayed": "FR40"
+    })
+
+    print("Obtenido:")
+    print(result)
+
+    print("\nAtributo board.summary:")
+    print(board.summary)
+
+
+main()
+    
+    

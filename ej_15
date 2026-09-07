@@ -1,0 +1,367 @@
+class Talk:
+    def __init__(self, title, speaker, start_time, duration):
+        self.title = title
+        self.speaker = speaker
+        self.start_time = start_time
+        self.duration = duration
+
+    def __str__(self):
+        return f"{self.title} - {self.speaker} - {self.start_time}:00 - {self.duration} min"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class ConferenceSchedule:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def add_talk(self, talk):
+        new_node = Node(talk)
+
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+    
+    @classmethod
+    def alternate(cls, morning, afternoon):
+        
+        conferencia = ConferenceSchedule()
+        
+        if len(morning) > len(afternoon):
+            mayor = len(morning)
+        else:
+            mayor = len(afternoon)
+         
+        posicion = 0
+        
+        while posicion < mayor:
+        
+            if posicion < len(morning):
+                conferencia.add_talk(morning[posicion])
+            if posicion < len(afternoon):
+                conferencia.add_talk(afternoon[posicion])
+        
+            posicion += 1
+        
+        return conferencia
+    
+    def rotate(self, positions):
+        
+        if self.first is None:
+            return False
+        
+        current = self.first
+        contador = 0
+        while current is not None:
+            contador += 1
+            current = current.next
+        
+        if positions > contador:
+            return False
+        else:
+            contar = 0
+            current = self.first
+
+            while current is not None and contar < positions:
+                ultimo = self.last
+                primero = self.first
+
+                self.first = self.first.next
+
+                self.last.next = primero
+                primero.prev = self.last
+                self.last = primero
+
+                ultimo.next = self.last
+                self.last.prev = ultimo
+                self.last.next = None
+                contar += 1
+            return True
+
+    
+    def remove_repeated_speakers(self):
+        
+        if self.first is None:
+            return None
+        elif self.first.next is None:
+            return
+        else:
+            prev = None
+            current = self.first
+            eliminado = 0
+            lista_vistos = []
+
+            while current is not None:
+                if current.value.speaker not in lista_vistos:
+                    lista_vistos.append(current.value.speaker)
+                    prev = current
+                    current = current.next
+                elif current.value.speaker in lista_vistos:
+                    prev.next = current.next
+                    eliminado += 1
+                    current = current.next
+                else:
+                    prev = current
+                    current = current.next
+            
+            return eliminado
+            
+            
+    
+
+    @property
+    def starting_time(self):
+        
+        if self.first is None:
+            return None
+        elif self.first.next is not None:
+            return self.first.value.start_time
+        else:
+            return self.first.value.start_time
+    
+    @starting_time.setter
+    def starting_time(self, tiempo):
+        
+        if self.first is None:
+            return None
+        elif self.first.next is None:
+            self.first.value.start_time = tiempo
+        else:
+            horas = (tiempo - self.first.value.start_time)
+            self.first.value.start_time = tiempo
+            current = self.first.next
+
+            while current is not None:
+                current.value.start_time += horas
+                current = current.next
+            return 
+    
+    def split_after(self, title):
+
+        new_conferencia = ConferenceSchedule()
+
+        current = self.first
+
+        while current is not None and current.value.title != title:
+            current = current.next
+       
+
+        if current is None:
+            return None
+        
+        self.last = current
+        nodo = current.next
+
+        prev = nodo.prev    
+        while nodo is not None:
+            new_conferencia.add_talk(nodo.value)
+            nodo = nodo.next
+        self.last = prev
+        current.next = None
+        return new_conferencia
+    
+
+
+
+    
+def print_schedule(schedule):
+    current = schedule.first
+
+    while current is not None:
+        print(
+            f"{current.value.title}({current.value.speaker}, "
+            f"{current.value.start_time}:00)",
+            end=""
+        )
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    talks1 = [
+        Talk("Python", "Ana", 9, 60),
+        Talk("AI", "Luis", 11, 45),
+        Talk("Web", "Marta", 13, 60)
+    ]
+
+    talks2 = [
+        Talk("Security", "Pedro", 10, 50),
+        Talk("Data", "Lucia", 12, 40)
+    ]
+
+
+    # =====================================
+    # 1. ALTERNATE
+    # =====================================
+
+    print("\n--- ALTERNATE ---")
+
+    schedule = ConferenceSchedule.alternate(talks1, talks2)
+
+    print("Esperado:")
+    print(
+        "Python(Ana, 9:00) <-> "
+        "Security(Pedro, 10:00) <-> "
+        "AI(Luis, 11:00) <-> "
+        "Data(Lucia, 12:00) <-> "
+        "Web(Marta, 13:00)"
+    )
+
+    print("Obtenido:")
+    print_schedule(schedule)
+
+
+    # =====================================
+    # 2. ROTATE
+    # =====================================
+
+    print("\n--- ROTATE ---")
+
+    result = schedule.rotate(2)
+
+    print("Resultado esperado: True")
+    print("Resultado obtenido:", result)
+
+    print("Lista esperada:")
+    print(
+        "AI(Luis, 11:00) <-> "
+        "Data(Lucia, 12:00) <-> "
+        "Web(Marta, 13:00) <-> "
+        "Python(Ana, 9:00) <-> "
+        "Security(Pedro, 10:00)"
+    )
+
+    print("Lista obtenida:")
+    print_schedule(schedule)
+
+
+    # =====================================
+    # 3. REMOVE REPEATED SPEAKERS
+    # =====================================
+
+    print("\n--- REMOVE REPEATED SPEAKERS ---")
+
+    schedule = ConferenceSchedule()
+
+    repeated = [
+        Talk("Python", "Ana", 9, 60),
+        Talk("AI", "Luis", 10, 45),
+        Talk("Java", "Ana", 11, 50),
+        Talk("Networks", "Pedro", 12, 40),
+        Talk("Cloud", "Luis", 13, 60),
+        Talk("Testing", "Marta", 14, 45)
+    ]
+
+    for talk in repeated:
+        schedule.add_talk(talk)
+
+    removed = schedule.remove_repeated_speakers()
+
+    print("Número eliminado esperado: 2")
+    print("Número eliminado obtenido:", removed)
+
+    print("Lista esperada:")
+    print(
+        "Python(Ana, 9:00) <-> "
+        "AI(Luis, 10:00) <-> "
+        "Networks(Pedro, 12:00) <-> "
+        "Testing(Marta, 14:00)"
+    )
+
+    print("Lista obtenida:")
+    print_schedule(schedule)
+
+
+    # =====================================
+    # 4. STARTING TIME - GETTER
+    # =====================================
+
+    print("\n--- STARTING TIME GETTER ---")
+
+    print("Esperado: 9")
+    print("Obtenido:", schedule.starting_time)
+
+
+    # =====================================
+    # STARTING TIME - SETTER
+    # =====================================
+
+    print("\n--- STARTING TIME SETTER ---")
+
+    schedule.starting_time = 12
+
+    print("Lista esperada:")
+    print(
+        "Python(Ana, 12:00) <-> "
+        "AI(Luis, 13:00) <-> "
+        "Networks(Pedro, 15:00) <-> "
+        "Testing(Marta, 17:00)"
+    )
+
+    print("Lista obtenida:")
+    print_schedule(schedule)
+
+
+    # =====================================
+    # 5. SPLIT AFTER
+    # =====================================
+
+    print("\n--- SPLIT AFTER ---")
+
+    schedule = ConferenceSchedule()
+
+    split_talks = [
+        Talk("Python", "Ana", 9, 60),
+        Talk("AI", "Luis", 10, 45),
+        Talk("Security", "Pedro", 11, 50),
+        Talk("Data", "Lucia", 12, 40),
+        Talk("Web", "Marta", 13, 60)
+    ]
+
+    for talk in split_talks:
+        schedule.add_talk(talk)
+
+    second = schedule.split_after("Security")
+
+    print("Agenda original esperada:")
+    print(
+        "Python(Ana, 9:00) <-> "
+        "AI(Luis, 10:00) <-> "
+        "Security(Pedro, 11:00)"
+    )
+
+    print("Agenda original obtenida:")
+    print_schedule(schedule)
+
+    print("Nueva agenda esperada:")
+    print(
+        "Data(Lucia, 12:00) <-> "
+        "Web(Marta, 13:00)"
+    )
+
+    print("Nueva agenda obtenida:")
+    print_schedule(second)
+
+
+main()  
+    
+    
+    
+    
+    
+    

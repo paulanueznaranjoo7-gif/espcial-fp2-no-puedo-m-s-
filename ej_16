@@ -84,27 +84,30 @@ class DeliveryRoute:
             if current is None:
                 return -1
             return distancias
-        
+     
     def mark_every(self, step):
 
         if self.first is None:
-            return None
+                return None
         elif step <= 0:
             return 0
         else:
             prev = None
             current = self.first
             cambio = 0
-            while current.next is not None:
+            while current is not None:
                 pasos = 0
-                while pasos < step:
+                while pasos < step and current is not None:
                     pasos += 1
                     prev = current
                     current = current.next
-                cambio += 1
-                prev.value.delivered = True
+                   
+                if pasos == step:
+                    prev.value.delivered = True
+                    cambio += 1
             return cambio
-    
+            
+   
     def same_ends(self):
 
         if self.first is None:

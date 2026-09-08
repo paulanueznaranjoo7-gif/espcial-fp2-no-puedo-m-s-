@@ -1,0 +1,307 @@
+class Delivery:
+    def __init__(self, address, distance, price, delivered):
+        self.address = address
+        self.distance = distance
+        self.price = price
+        self.delivered = delivered
+
+    def __str__(self):
+        return f"{self.address} - {self.distance} km - {self.price} € - {self.delivered}"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class DeliveryRoute:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def add_delivery(self, delivery):
+        new_node = Node(delivery)
+
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+
+    @classmethod
+    def repeat_each(cls, deliveries, times):
+        
+        new_route = cls()
+
+        if times <= 0:
+            return new_route
+        else:
+            for entrega in deliveries:
+                contador = 0
+                while contador < times:
+                    new_route.add_delivery(entrega)
+                    contador += 1
+        
+        return new_route
+    
+    def reverse_prices(self):
+
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            siguiente = self.last
+        
+            while (current is not None and siguiente is not None
+                    and current != siguiente
+                    and current.prev != siguiente):
+        
+                anterior = current.value.price
+                current.value.price = siguiente.value.price
+                siguiente.value.price = anterior
+        
+                current = current.next
+                siguiente = siguiente.prev
+
+
+
+
+    def distance_until(self, address):
+        
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            distancias = self.first.value.distance
+
+            while current.next is not None and current.value.address != address:
+                distancias += current.next.value.distance
+                current = current.next
+            if current is None:
+                return -1
+            return distancias
+        
+    def mark_every(self, step):
+
+        if self.first is None:
+            return None
+        elif step <= 0:
+            return 0
+        else:
+            prev = None
+            current = self.first
+            cambio = 0
+            while current.next is not None:
+                pasos = 0
+                while pasos < step:
+                    pasos += 1
+                    prev = current
+                    current = current.next
+                cambio += 1
+                prev.value.delivered = True
+            return cambio
+    
+    def same_ends(self):
+
+        if self.first is None:
+            return True
+        
+        current = self.first
+        contador = 0
+        while current is not None:
+            contador += 1
+            current = current.next
+
+        else:
+            tamaño = -1
+            primero = self.first
+            ultimo = self.last
+
+            while primero is not None and ultimo is not None and tamaño < contador:
+                if primero.value.distance != ultimo.value.distance:
+                    return False
+                else:
+                    tamaño += 2
+                    primero = primero.next
+                    ultimo = ultimo.prev
+            if tamaño == contador:
+                return True
+
+
+def print_route(route):
+    current = route.first
+
+    while current is not None:
+        print(
+            f"{current.value.address}({current.value.distance} km, "
+            f"{current.value.price} €, {current.value.delivered})",
+            end=""
+        )
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    # =====================================
+    # 1. REPEAT EACH
+    # =====================================
+
+    deliveries = [
+        Delivery("A", 4, 10, False),
+        Delivery("B", 7, 20, False),
+        Delivery("C", 3, 30, False),
+        Delivery("D", 8, 40, False)
+    ]
+
+    print("\n--- REPEAT EACH ---")
+
+    route = DeliveryRoute.repeat_each(deliveries, 2)
+
+    print("Esperado:")
+    print("A(4 km, 10 €, False) <-> A(4 km, 10 €, False) <-> B(7 km, 20 €, False) <-> B(7 km, 20 €, False) <-> C(3 km, 30 €, False) <-> C(3 km, 30 €, False) <-> D(8 km, 40 €, False) <-> D(8 km, 40 €, False)")
+
+    print("Obtenido:")
+    print_route(route)
+
+
+    # =====================================
+    # 2. REVERSE PRICES
+    # =====================================
+
+    print("\n--- REVERSE PRICES ---")
+
+    route = DeliveryRoute()
+
+    deliveries = [
+        Delivery("A", 4, 10, False),
+        Delivery("B", 7, 20, False),
+        Delivery("C", 3, 30, False),
+        Delivery("D", 8, 40, False)
+    ]
+
+    for delivery in deliveries:
+        route.add_delivery(delivery)
+
+    route.reverse_prices()
+
+    print("Esperado:")
+    print("A(4 km, 40 €, False) <-> B(7 km, 30 €, False) <-> C(3 km, 20 €, False) <-> D(8 km, 10 €, False)")
+
+    print("Obtenido:")
+    print_route(route)
+
+
+    # =====================================
+    # 3. DISTANCE UNTIL
+    # =====================================
+
+    print("\n--- DISTANCE UNTIL ---")
+
+    route = DeliveryRoute()
+
+    deliveries = [
+        Delivery("A", 4, 10, False),
+        Delivery("B", 7, 20, False),
+        Delivery("C", 3, 30, False),
+        Delivery("D", 8, 40, False)
+    ]
+
+    for delivery in deliveries:
+        route.add_delivery(delivery)
+
+    print("Esperado para C: 14")
+    print("Obtenido:", route.distance_until("C"))
+
+    print("Esperado para A: 4")
+    print("Obtenido:", route.distance_until("A"))
+
+    print("Esperado para D: 22")
+    print("Obtenido:", route.distance_until("D"))
+
+    print("Esperado para X: -1")
+    print("Obtenido:", route.distance_until("X"))
+
+
+    # =====================================
+    # 4. MARK EVERY
+    # =====================================
+
+    print("\n--- MARK EVERY ---")
+
+    route = DeliveryRoute()
+
+    deliveries = [
+        Delivery("A", 2, 10, False),
+        Delivery("B", 3, 20, False),
+        Delivery("C", 4, 30, False),
+        Delivery("D", 5, 40, False),
+        Delivery("E", 6, 50, False),
+        Delivery("F", 7, 60, False),
+        Delivery("G", 8, 70, False)
+    ]
+
+    for delivery in deliveries:
+        route.add_delivery(delivery)
+
+    marked = route.mark_every(3)
+
+    print("Número marcado esperado: 2")
+    print("Número marcado obtenido:", marked)
+
+    print("Lista esperada:")
+    print("A(2 km, 10 €, False) <-> B(3 km, 20 €, False) <-> C(4 km, 30 €, True) <-> D(5 km, 40 €, False) <-> E(6 km, 50 €, False) <-> F(7 km, 60 €, True) <-> G(8 km, 70 €, False)")
+
+    print("Lista obtenida:")
+    print_route(route)
+
+
+    # =====================================
+    # 5. SAME ENDS
+    # =====================================
+
+    print("\n--- SAME ENDS ---")
+
+    route = DeliveryRoute()
+
+    deliveries = [
+        Delivery("A", 5, 10, False),
+        Delivery("B", 8, 20, False),
+        Delivery("C", 12, 30, False),
+        Delivery("D", 8, 40, False),
+        Delivery("E", 5, 50, False)
+    ]
+
+    for delivery in deliveries:
+        route.add_delivery(delivery)
+
+    print("Caso 1 esperado: True")
+    print("Caso 1 obtenido:", route.same_ends())
+
+    route = DeliveryRoute()
+
+    deliveries = [
+        Delivery("A", 5, 10, False),
+        Delivery("B", 8, 20, False),
+        Delivery("C", 12, 30, False),
+        Delivery("D", 7, 40, False),
+        Delivery("E", 5, 50, False)
+    ]
+
+    for delivery in deliveries:
+        route.add_delivery(delivery)
+
+    print("Caso 2 esperado: False")
+    print("Caso 2 obtenido:", route.same_ends())
+
+
+main()

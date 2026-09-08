@@ -1,0 +1,307 @@
+class Movie:
+    def __init__(self, title, room, start_time, duration):
+        self.title = title
+        self.room = room
+        self.start_time = start_time
+        self.duration = duration
+
+    def __str__(self):
+        return f"{self.title} - sala {self.room} - {self.start_time}:00 - {self.duration} min"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class CinemaSchedule:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def add_movie(self, movie):
+        new_node = Node(movie)
+
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+    
+    @classmethod
+    def from_room(cls, movies, room):
+
+        cine = CinemaSchedule()
+
+        for i in movies:
+            if i.room == room:
+                cine.add_movie(i)
+        
+        return cine
+    
+    def insert_before_time(self, movie, time):
+        
+        new_node = Node(movie)
+
+        if self.first is None:
+            return None
+        elif self.first.value.start_time >= time:
+            new_node.next = self.first
+            self.first.prev = new_node
+            return
+
+        else:
+            prev = self.first
+            current = self.first.next
+
+            while current is not None:
+                if current.value.start_time >= time:
+                    anterior = prev
+                    nodo = current
+                    new_node.next = current
+                    current.prev = new_node
+                    anterior.next = new_node
+                    new_node.prev = anterior
+                    return True
+                else:
+                    prev = current
+                    current = current.next
+            
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+    
+    def total_between(self, title1, title2):
+
+        if self.first is None:
+            return None
+        
+        else:
+            current = self.first
+            while current is not None:
+                if current.value.title == title2:
+                    return -1
+                elif current.value.title == title1:
+                    duraciones = 0
+                    while current.next.value.title != title2:
+                        duraciones += current.next.value.duration
+                        current = current.next
+                    return duraciones
+                else:
+                    current = current.next
+            
+            return -1
+    
+    @property
+    def last_room(self):
+        if self.first is None:
+            return None
+        else:
+            return self.last.value.room
+    
+    @last_room.setter
+    def last_room(self, new_sala):
+
+        if self.first is None:
+            return None
+        else:
+            sala = self.last.value.room
+            current = self.first
+
+            while current is not None:
+                if current.value.room == sala:
+                    current.value.room = new_sala
+                current = current.next
+    
+    def longest_gap(self):
+
+        if self.first is None:
+            return None
+        else:
+            prev = self.first
+            current = self.first.next
+            maximo = -99999
+            max = None
+
+            while current is not None:
+                resta = (current.value.start_time - prev.value.start_time)
+                if resta > maximo:
+                    maximo = resta
+                    max = prev.value.title, current.value.title
+                prev = current
+                current = current.next
+            return max
+
+          
+
+
+
+
+
+
+
+
+
+
+def print_schedule(schedule):
+    current = schedule.first
+
+    while current is not None:
+        print(
+            f"{current.value.title}"
+            f"(sala {current.value.room}, "
+            f"{current.value.start_time}:00, "
+            f"{current.value.duration} min)",
+            end=""
+        )
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    # =====================================
+    # 1. FROM ROOM
+    # =====================================
+
+    print("\n--- FROM ROOM ---")
+
+    movies = [
+        Movie("A", 1, 9, 90),
+        Movie("B", 2, 11, 120),
+        Movie("C", 1, 13, 80),
+        Movie("D", 3, 16, 100),
+        Movie("E", 1, 19, 110)
+    ]
+
+    schedule = CinemaSchedule.from_room(movies, 1)
+
+    print("Esperado:")
+    print("A(sala 1, 9:00, 90 min) <-> C(sala 1, 13:00, 80 min) <-> E(sala 1, 19:00, 110 min)")
+
+    print("Obtenido:")
+    print_schedule(schedule)
+
+
+    # =====================================
+    # 2. INSERT BEFORE TIME
+    # =====================================
+
+    print("\n--- INSERT BEFORE TIME ---")
+
+    schedule = CinemaSchedule()
+
+    schedule.add_movie(Movie("A", 1, 10, 90))
+    schedule.add_movie(Movie("B", 2, 13, 120))
+    schedule.add_movie(Movie("C", 1, 17, 100))
+
+    result = schedule.insert_before_time(
+        Movie("X", 3, 12, 80),
+        13
+    )
+
+    print("Return esperado: True")
+    print("Return obtenido:", result)
+
+    print("Lista esperada:")
+    print("A(sala 1, 10:00, 90 min) <-> X(sala 3, 12:00, 80 min) <-> B(sala 2, 13:00, 120 min) <-> C(sala 1, 17:00, 100 min)")
+
+    print("Lista obtenida:")
+    print_schedule(schedule)
+
+
+    # =====================================
+    # 3. TOTAL BETWEEN
+    # =====================================
+
+    print("\n--- TOTAL BETWEEN ---")
+
+    schedule = CinemaSchedule()
+
+    movies = [
+        Movie("A", 1, 9, 90),
+        Movie("B", 2, 11, 120),
+        Movie("C", 1, 13, 80),
+        Movie("D", 3, 16, 100),
+        Movie("E", 2, 19, 110)
+    ]
+
+    for movie in movies:
+        schedule.add_movie(movie)
+
+    print("Esperado A-E: 300")
+    print("Obtenido:", schedule.total_between("A", "E"))
+
+    print("Esperado B-C: 0")
+    print("Obtenido:", schedule.total_between("B", "C"))
+
+    print("Esperado X-E: -1")
+    print("Obtenido:", schedule.total_between("X", "E"))
+
+    print("Esperado E-A: -1")
+    print("Obtenido:", schedule.total_between("E", "A"))
+
+
+    # =====================================
+    # 4. LAST ROOM
+    # =====================================
+
+    print("\n--- LAST ROOM ---")
+
+    schedule = CinemaSchedule()
+
+    movies = [
+        Movie("A", 2, 9, 90),
+        Movie("B", 1, 11, 120),
+        Movie("C", 2, 13, 80),
+        Movie("D", 3, 16, 100),
+        Movie("E", 2, 19, 110)
+    ]
+
+    for movie in movies:
+        schedule.add_movie(movie)
+
+    print("Getter esperado: 2")
+    print("Getter obtenido:", schedule.last_room)
+
+    schedule.last_room = 5
+
+    print("Después del setter esperado:")
+    print("A(sala 5, 9:00, 90 min) <-> B(sala 1, 11:00, 120 min) <-> C(sala 5, 13:00, 80 min) <-> D(sala 3, 16:00, 100 min) <-> E(sala 5, 19:00, 110 min)")
+
+    print("Obtenido:")
+    print_schedule(schedule)
+
+
+    # =====================================
+    # 5. LONGEST GAP
+    # =====================================
+
+    print("\n--- LONGEST GAP ---")
+
+    schedule = CinemaSchedule()
+
+    movies = [
+        Movie("A", 1, 9, 90),
+        Movie("B", 2, 11, 120),
+        Movie("C", 1, 12, 80),
+        Movie("D", 3, 18, 100),
+        Movie("E", 2, 20, 110)
+    ]
+
+    for movie in movies:
+        schedule.add_movie(movie)
+
+    print("Esperado: ('C', 'D')")
+    print("Obtenido:", schedule.longest_gap())
+
+
+main()

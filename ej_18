@@ -1,0 +1,296 @@
+class Student:
+    def __init__(self, name, degree, grade, credits):
+        self.name = name
+        self.degree = degree
+        self.grade = grade
+        self.credits = credits
+
+    def __str__(self):
+        return f"{self.name} - {self.degree} - {self.grade} - {self.credits} credits"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class University:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def add_student(self, student):
+        new_node = Node(student)
+
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+    
+    @classmethod 
+    def best_students(cls, students, minimum_grade):
+        
+        universidad = University()
+        
+        for estudiante in students:
+            if estudiante.grade >= minimum_grade:
+                universidad.add_student(estudiante)
+        return universidad
+    
+    def credits_before(self, name):
+        
+        if self.first is None:
+            return None
+        elif self.first.value.name == name:
+            return 0
+        else:
+            current = self.first
+            creditos = 0
+            
+            while current is not None and current.value.name != name:
+                creditos += current.value.credits
+                current = current.next
+            
+            if current is None:
+                return -1
+            
+            return creditos
+            
+    def replace_student(self, name, new_student):
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            
+            while current is not None:
+                if current.value.name == name:
+                    current.value.name = new_student
+                    return True
+                else:
+                    current = current.next
+            return -1
+    
+    @property
+    def average_grade(self):
+        
+        if self.first is None:
+            return None
+        
+        current = self.first
+        suma = 0
+        contador = 0
+        while current is not None:
+            suma += current.value.grade
+            contador += 1
+            current = current.next
+        return suma / contador
+    
+    @average_grade.setter
+    def average_grade(self, cantidad):
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            suma = 0
+            contador = 0
+            while current is not None:
+                suma += current.value.grade
+                contador += 1
+                current = current.next
+            media = suma / contador
+            
+            resta = cantidad - media 
+            
+            current = self.first
+            contar = 0
+            suma = 0
+            while current is not None:
+                current.value.grade += resta
+                valor = current.value.grade
+                suma += valor
+                contar += 1
+                current = current.next
+            return suma / contar
+    
+    def closest_grades(self):
+        
+        if self.first is None:
+            return None
+        else:
+            prev = self.first
+            current = self.first.next
+            minimo = 10000
+            mini = None
+            while current is not None:
+                resta = abs(prev.value.grade  - current.value.grade)
+                if resta < minimo:
+                    minimo = resta
+                    mini = (prev.value.name, current.value.name)
+                prev = current
+                current = current.next
+            return mini
+
+
+def print_university(university):
+    current = university.first
+
+    while current is not None:
+        print(
+            f"{current.value.name}"
+            f"({current.value.degree}, "
+            f"nota={current.value.grade}, "
+            f"créditos={current.value.credits})",
+            end=""
+        )
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    # =====================================
+    # 1. BEST STUDENTS
+    # =====================================
+
+    print("\n--- BEST STUDENTS ---")
+
+    students = [
+        Student("Ana", "Computer Science", 8.5, 60),
+        Student("Luis", "Physics", 4.5, 30),
+        Student("Marta", "Mathematics", 7.0, 45),
+        Student("Pedro", "Engineering", 5.0, 20)
+    ]
+
+    university = University.best_students(students, 7)
+
+    print("Esperado:")
+    print("Ana <-> Marta")
+
+    print("Obtenido:")
+    print_university(university)
+
+
+    # =====================================
+    # 2. CREDITS BEFORE
+    # =====================================
+
+    print("\n--- CREDITS BEFORE ---")
+
+    university = University()
+
+    students = [
+        Student("Ana", "Computer Science", 8.0, 60),
+        Student("Luis", "Physics", 6.0, 30),
+        Student("Marta", "Mathematics", 7.0, 45),
+        Student("Pedro", "Engineering", 9.0, 20)
+    ]
+
+    for student in students:
+        university.add_student(student)
+
+    print("Marta - Esperado: 90")
+    print("Obtenido:", university.credits_before("Marta"))
+
+    print("Ana - Esperado: 0")
+    print("Obtenido:", university.credits_before("Ana"))
+
+    print("Carlos - Esperado: -1")
+    print("Obtenido:", university.credits_before("Carlos"))
+
+
+    # =====================================
+    # 3. REPLACE STUDENT
+    # =====================================
+
+    print("\n--- REPLACE STUDENT ---")
+
+    university = University()
+
+    for student in students:
+        university.add_student(student)
+
+    new_student = Student("Carlos", "Physics", 8.2, 50)
+
+    result = university.replace_student("Luis", new_student)
+
+    print("Return esperado: True")
+    print("Return obtenido:", result)
+
+    print("Esperado:")
+    print("Ana <-> Carlos <-> Marta <-> Pedro")
+
+    print("Obtenido:")
+    print_university(university)
+
+
+    # =====================================
+    # 4. AVERAGE GRADE
+    # =====================================
+
+    print("\n--- AVERAGE GRADE ---")
+
+    university = University()
+
+    university.add_student(
+        Student("Ana", "Computer Science", 5.0, 60)
+    )
+    university.add_student(
+        Student("Luis", "Physics", 7.0, 30)
+    )
+    university.add_student(
+        Student("Marta", "Mathematics", 6.0, 45)
+    )
+
+    print("Getter esperado: 6.0")
+    print("Getter obtenido:", university.average_grade)
+
+    print("\nCambiamos la media a 8:")
+    university.average_grade = 8
+
+    print("Notas esperadas:")
+    print("Ana = 7.0, Luis = 9.0, Marta = 8.0")
+
+    print("Obtenido:")
+    print_university(university)
+
+    print("Nueva media esperada: 8.0")
+    print("Nueva media obtenida:", university.average_grade)
+
+
+    # =====================================
+    # 5. CLOSEST GRADES
+    # =====================================
+
+    print("\n--- CLOSEST GRADES ---")
+
+    university = University()
+
+    university.add_student(
+        Student("Ana", "Computer Science", 8.5, 60)
+    )
+    university.add_student(
+        Student("Luis", "Physics", 6.0, 30)
+    )
+    university.add_student(
+        Student("Marta", "Mathematics", 6.4, 45)
+    )
+    university.add_student(
+        Student("Pedro", "Engineering", 9.0, 20)
+    )
+
+    print("Esperado: ('Luis', 'Marta')")
+    print("Obtenido:", university.closest_grades())
+
+
+main()

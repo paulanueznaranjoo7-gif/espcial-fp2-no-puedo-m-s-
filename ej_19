@@ -1,0 +1,380 @@
+class Surgery:
+    def __init__(self, patient, priority, duration):
+        self.patient = patient
+        self.priority = priority
+        self.duration = duration
+
+    def __str__(self):
+        return f"{self.patient} - priority {self.priority} - {self.duration} min"
+
+
+class Node:
+    def __init__(self, value, prev=None, next=None):
+        self.value = value
+        self.prev = prev
+        self.next = next
+
+
+class SurgeryList:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def add_surgery(self, surgery):
+        new_node = Node(surgery)
+
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            new_node.prev = self.last
+            self.last = new_node
+    
+    @classmethod
+    def transfer_node(cls, source, destination, patient):
+        
+        prev = None
+        sorce = source.first
+        destino = destination.first
+        
+        while sorce is not None:
+            if source.first.value.patient == patient:
+                source.first = source.first.next
+                nodo = sorce
+                if destination.first is None:
+                    destination.first = destination.last = nodo
+                else:
+                    destination.last.next = nodo
+                    nodo.prev = destination.last
+                    return True
+            elif sorce.value.patient == patient:
+                prev.next = sorce.next
+                sorce.next.prev = prev
+                nodo = sorce
+                if destination.first is None:
+                    destination.first = destination.last = nodo
+                else:
+                    destination.last.next = nodo
+                    nodo.prev = destination.last
+                    return True
+            else:
+                prev = sorce
+                sorce = sorce.next
+                
+        return False
+
+    def swap_with_next(self, patient):
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            
+            while current.next is not None:
+                if current.value.patient == patient:
+                    anterior = current.prev
+                    nodo = current
+                    siguiente = current.next
+                    despues = siguiente.next
+                    siguiente.next = nodo
+                    nodo.prev = siguiente
+                    nodo.next = despues
+                    despues.prev = nodo
+                    anterior.next = siguiente
+                    siguiente.prev = anterior
+                    return True
+                else:
+                    current = current.next
+            if current.value.patient == patient:
+                anterior = current.prev
+                anterior.next = None
+                anterior.prev = current
+                current.next = anterior
+            else:
+                return False
+    
+    def remove_neighbors(self, patient):
+        
+        if self.first is None:
+            return None
+        else:
+            nodos = 0
+            prev = self.first
+            current = self.first.next
+            while current is not None:
+                if current.value.patient == patient:
+                    anterior = prev.prev
+                    siguiente = current.next
+                    anterior.next = current
+                    current.next = siguiente.next
+                    nodos += 2
+                    return nodos
+                else:
+                    prev = current
+                    current = current.next
+                
+            if current is None:
+                return 0
+            
+            
+    
+    @property
+    def first_priority(self):
+        
+        if self.first is None:
+            return None
+        else:
+            return self.first.value.priority
+    
+    @first_priority.setter
+    def first_priority(self, cambio):
+        
+        if self.first is None:
+            return None
+        else:
+            current = self.first
+            while current is not None:
+                if current.value.priority == self.first.value.priority:
+                    current.value.priority = cambio
+                current = current.next
+    
+    
+    def move_before(self, patient1, patient2):
+        
+        if self.first is None:
+            return None
+        else:
+            if self.first.value.patient == patient1:
+                nodo = self.first
+                self.first = self.first.next
+                self.first.prev = None
+                prev = self.first
+                current = self.first.next
+                while current is not None:
+                    if current.value.patient == patient2:
+                        siguiente = current
+                        prev.next = nodo
+                        nodo.prev = prev
+                        nodo.next = siguiente
+                        siguiente.prev = nodo
+                        return True
+                    else:
+                        prev = current
+                        current = current.next
+                return False
+            else:   
+                prev = self.first
+                current = self.first.next
+                while current is not None:
+                    if current.value.patient == patient1:
+                        nodo = current
+                        prev.next = current.next
+                        current.next.prev = prev
+                        
+                        prev = None
+                        current = self.first
+                        
+                        while current is not None:
+                            if current.value.patient == patient2:
+                                siguiente = current
+                                prev.next = nodo
+                                nodo.prev = prev
+                                nodo.next = siguiente
+                                siguiente.prev = nodo
+                                return True
+                            else:
+                                prev = current
+                                current = current.next
+                                
+                        return False
+                        
+                    else:
+                        prev = current
+                        current = current.next
+                
+
+def print_surgeries(surgeries):
+    current = surgeries.first
+
+    while current is not None:
+        print(
+            f"{current.value.patient}"
+            f"(priority={current.value.priority}, "
+            f"duration={current.value.duration})",
+            end=""
+        )
+
+        if current.next is not None:
+            print(" <-> ", end="")
+
+        current = current.next
+
+    print()
+
+
+def main():
+
+    # ==================================================
+    # 1. TRANSFER_NODE
+    # ==================================================
+
+    print("\n========== 1. TRANSFER_NODE ==========")
+
+    source = SurgeryList()
+    source.add_surgery(Surgery("Ana", 5, 60))
+    source.add_surgery(Surgery("Luis", 7, 40))
+    source.add_surgery(Surgery("Marta", 4, 50))
+
+    destination = SurgeryList()
+    destination.add_surgery(Surgery("Pedro", 8, 30))
+    destination.add_surgery(Surgery("Elena", 3, 45))
+
+    print("SOURCE original:")
+    print_surgeries(source)
+
+    print("DESTINATION original:")
+    print_surgeries(destination)
+
+    result = SurgeryList.transfer_node(
+        source, destination, "Luis"
+    )
+
+    print("\nSOURCE esperado:")
+    print("Ana <-> Marta")
+
+    print("SOURCE obtenido:")
+    print_surgeries(source)
+
+    print("\nDESTINATION esperado:")
+    print("Pedro <-> Elena <-> Luis")
+
+    print("DESTINATION obtenido:")
+    print_surgeries(destination)
+
+    print("Return esperado: True")
+    print("Return obtenido:", result)
+
+
+    # ==================================================
+    # 2. SWAP_WITH_NEXT
+    # ==================================================
+
+    print("\n========== 2. SWAP_WITH_NEXT ==========")
+
+    surgeries = SurgeryList()
+
+    surgeries.add_surgery(Surgery("Ana", 5, 60))
+    surgeries.add_surgery(Surgery("Luis", 7, 40))
+    surgeries.add_surgery(Surgery("Marta", 4, 50))
+    surgeries.add_surgery(Surgery("Pedro", 8, 30))
+
+    print("Original:")
+    print_surgeries(surgeries)
+
+    result = surgeries.swap_with_next("Luis")
+
+    print("Esperado:")
+    print("Ana <-> Marta <-> Luis <-> Pedro")
+
+    print("Obtenido:")
+    print_surgeries(surgeries)
+
+    print("Return esperado: True")
+    print("Return obtenido:", result)
+
+
+    # ==================================================
+    # 3. REMOVE_NEIGHBORS
+    # ==================================================
+
+    print("\n========== 3. REMOVE_NEIGHBORS ==========")
+
+    surgeries = SurgeryList()
+
+    surgeries.add_surgery(Surgery("Ana", 5, 60))
+    surgeries.add_surgery(Surgery("Luis", 7, 40))
+    surgeries.add_surgery(Surgery("Marta", 4, 50))
+    surgeries.add_surgery(Surgery("Pedro", 8, 30))
+    surgeries.add_surgery(Surgery("Elena", 3, 45))
+
+    print("Original:")
+    print_surgeries(surgeries)
+
+    result = surgeries.remove_neighbors("Marta")
+
+    print("Esperado:")
+    print("Ana <-> Marta <-> Elena")
+
+    print("Obtenido:")
+    print_surgeries(surgeries)
+
+    print("Return esperado: 2")
+    print("Return obtenido:", result)
+
+
+    # ==================================================
+    # 4. FIRST_PRIORITY GETTER Y SETTER
+    # ==================================================
+
+    print("\n========== 4. FIRST_PRIORITY ==========")
+
+    surgeries = SurgeryList()
+
+    surgeries.add_surgery(Surgery("Ana", 5, 60))
+    surgeries.add_surgery(Surgery("Luis", 7, 40))
+    surgeries.add_surgery(Surgery("Marta", 5, 50))
+    surgeries.add_surgery(Surgery("Pedro", 3, 30))
+
+    print("Original:")
+    print_surgeries(surgeries)
+
+    print("\nGetter esperado: 5")
+    print("Getter obtenido:", surgeries.first_priority)
+
+    surgeries.first_priority = 9
+
+    print("\nDespués del setter:")
+
+    print("Esperado:")
+    print("Ana(9) <-> Luis(7) <-> Marta(9) <-> Pedro(3)")
+
+    print("Obtenido:")
+    print_surgeries(surgeries)
+
+    print("Getter esperado ahora: 9")
+    print("Getter obtenido:", surgeries.first_priority)
+
+
+    # ==================================================
+    # 5. MOVE_BEFORE
+    # ==================================================
+
+    print("\n========== 5. MOVE_BEFORE ==========")
+
+    surgeries = SurgeryList()
+
+    surgeries.add_surgery(Surgery("Ana", 5, 60))
+    surgeries.add_surgery(Surgery("Luis", 7, 40))
+    surgeries.add_surgery(Surgery("Marta", 4, 50))
+    surgeries.add_surgery(Surgery("Pedro", 8, 30))
+    surgeries.add_surgery(Surgery("Elena", 3, 45))
+
+    print("Original:")
+    print_surgeries(surgeries)
+
+    result = surgeries.move_before("Pedro", "Luis")
+
+    print("\nEsperado:")
+    print("Ana <-> Pedro <-> Luis <-> Marta <-> Elena")
+
+    print("Obtenido:")
+    print_surgeries(surgeries)
+
+    print("Return esperado: True")
+    print("Return obtenido:", result)
+
+
+main()
+        
+        
+        

@@ -1,0 +1,241 @@
+class Order:
+    def __init__(self, item: str, price: int):
+        self.item = item
+        self.price = price
+
+    def __str__(self):
+        return f"{self.item}: {self.price} €"
+
+    def __repr__(self):
+        return f"{self.item}: {self.price} €"
+
+
+class Node:
+    def __init__(self, data: Order, next: "Node" = None):
+        self.data = data
+        self.next = next
+
+
+class OrderListBase:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def add_order(self, order):
+        new_node = Node(order)
+
+        if self.last == None:
+            self.first = new_node
+            self.last = new_node
+        else:
+            self.last.next = new_node
+            self.last = new_node
+
+    def __str__(self):
+        res = ""
+        current = self.first
+
+        while current:
+            res += f"{current.data}->"
+            current = current.next
+
+        res += "None"
+        return res
+    
+class OrderList(OrderListBase):
+    
+    def __init__(self, name):
+        super().__init__()
+        
+        self.name = name
+        self._summary_orders = [0, 0]
+    
+    _total_orders = [0, 0]
+    
+    def serve(self, index):
+        
+        if index < 0:
+            return None
+        
+        if self.first is None:
+            return None
+        else:
+            if index == 0:
+                comanda = self.first
+                self.first = self.first.next
+                if self.first is None:
+                    self.last = None
+                self._summary_orders[0] += 1
+                self._summary_orders[1] += comanda.data.price
+                OrderList._total_orders[0] += 1
+                OrderList._total_orders[1] += comanda.data.price
+                return comanda.data
+            else:
+                prev = self.first
+                current = self.first.next
+                current_pos = 1
+                
+                while current is not None and current_pos < index:
+                    prev = current
+                    current = current.next
+                    current_pos += 1
+                
+                if current is None and current_pos == index:
+                    return None
+            
+               
+                comanda = current   
+                self._summary_orders[0] += 1
+                self._summary_orders[1] += current.data.price
+                OrderList._total_orders[0] += 1
+                OrderList._total_orders[1] += current.data.price
+                prev.next = current.next
+                if current.next is None:
+                    self.last = prev
+            
+            return comanda.data
+    
+    
+    @property
+    def summary_orders(self):
+        tupla1 = tuple(self._summary_orders)
+        return tupla1
+    
+    @classmethod
+    def total_summary_orders(cls):
+        tupla2 = tuple(cls._total_orders)
+        return tupla2
+    
+    def get_order_list(self):
+        
+        waitingcomandas = []
+        
+        current = self.first
+        
+        while current is not None:
+            waitingcomandas.append(current.data)
+            current = current.next
+        
+        return waitingcomandas
+    
+    def __str__(self):
+        return "nombre del restaurante:" + self.name + super().__str__()
+    
+    
+    
+    
+    
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+                    
+                    
+                    
+                    
+                    
+                    
+                
+                
+        
+        
+
+
+
+if __name__ == "__main__":
+
+    print("(Ejecución del fichero modificable prueba.py)")
+
+    # Se crean dos restaurantes y se prueban
+    jap = OrderList("Japanese")
+    thai = OrderList("Thai")
+
+    # Se muestra información
+    print("Restaurantes al principio")
+    print(jap)
+    print(jap.summary_orders)
+    print(thai)
+    print(thai.summary_orders)
+    print(OrderList.total_summary_orders())
+
+    # Se añaden pedidos
+    jap.add_order(Order("Sashimi", 15))
+    jap.add_order(Order("Sashimi", 15))
+    jap.add_order(Order("Miso soup", 7))
+
+    thai.add_order(Order("Tom Yum", 7))
+    thai.add_order(Order("Satay", 8))
+
+    # Se muestra información
+    print("Restaurantes con comandas")
+    print(jap)
+    print(jap.summary_orders)
+    print(thai)
+    print(thai.summary_orders)
+    print(OrderList.total_summary_orders())
+
+    # Se entregan pedidos
+    print(jap.serve(1))
+    print(jap.serve(1))
+    print(jap.serve(0))
+    print(thai.serve(0))
+    print(thai.serve(0))
+
+    # Se muestra información
+    print("Restaurantes después de entregar todas las comandas")
+    print(jap)
+    print(jap.summary_orders)
+    print(thai)
+    print(thai.summary_orders)
+    print(OrderList.total_summary_orders())
+
+    # Se añaden pedidos
+    jap.add_order(Order("Sushi", 14))
+    jap.add_order(Order("Ramen", 8))
+    jap.add_order(Order("Tempura", 10))
+    jap.add_order(Order("Sashimi", 15))
+    jap.add_order(Order("Miso soup", 7))
+
+    thai.add_order(Order("Pad Thai", 5))
+    thai.add_order(Order("Tom Yum", 7))
+    thai.add_order(Order("Satay", 8))
+
+    # Se muestra información
+    print("Restaurantes con nuevas comandas")
+    print(jap)
+    print(jap.summary_orders)
+    print(thai)
+    print(thai.summary_orders)
+    print(OrderList.total_summary_orders())
+
+    # Se vuelven a añadir pedidos
+    jap.add_order(Order("Sushi", 14))
+    jap.add_order(Order("Ramen", 8))
+    jap.add_order(Order("Tempura", 10))
+    jap.add_order(Order("Sashimi", 15))
+    jap.add_order(Order("Miso soup", 7))
+
+    thai.add_order(Order("Pad Thai", 5))
+    thai.add_order(Order("Tom Yum", 7))
+    thai.add_order(Order("Satay", 8))
+
+    # Se muestra información
+    print("Restaurantes con nuevas comandas")
+    print(jap)
+    print(jap.get_order_list())
+    print(jap.summary_orders)
+
+    print(thai)
+    print(str(thai.get_order_list()))
+    print(thai.summary_orders)
+
+    print(OrderList.total_summary_orders())

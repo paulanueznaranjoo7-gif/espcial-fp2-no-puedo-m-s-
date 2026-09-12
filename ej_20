@@ -1,0 +1,168 @@
+class Movie:
+    def __init__(self, title, genre, duration, rating):
+        self.title = title
+        self.genre = genre
+        self.duration = duration
+        self.rating = rating
+
+    def __str__(self):
+        return f"{self.title} ({self.genre}) - {self.duration} min - {self.rating}"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class StreamingProfile:
+
+    _todos_perfiles = 0
+
+    def __init__(self, username, age):
+        self._username = username
+        self._age = age
+        self._watched = []
+        
+        
+    @property
+    def age(self):
+        return self._age
+    
+    @age.setter
+    def age(self, edad):
+            
+        if 0 < edad < 120:
+            self._age = edad
+            return self._age
+        else:
+            return self._age
+    
+    def watch(self, movie):
+        
+        
+        for peli in self._watched:
+            if movie.title == peli.title:
+                return False
+            
+        self._watched.append(movie)
+        StreamingProfile._todos_perfiles += 1
+        return True
+        
+    
+    def favorite_genre(self):
+
+        generos = []
+        mayor = 0
+        genero = None
+        for peli in self._watched:
+            generos.append(peli.title)
+            if generos.count(peli.genre) > mayor:
+                mayor = generos.count(peli.title)
+                genero = peli.genre
+        return genero
+    
+    @classmethod 
+    def total_views(cls):
+        return cls._todos_perfiles
+    
+    @staticmethod 
+    def recommended(movie, profile):
+        
+        if movie.genre == StreamingProfile.favorite_genre(profile) and movie.rating >= 7:
+            return True
+        else:
+            return False
+    
+    def __str__(self):
+        return f"{self._username} - {self._age}  {len(self._watched)} movies watched"
+    
+
+if __name__ == "__main__":
+
+    # Creamos perfiles
+    ana = StreamingProfile("Ana", 20)
+    luis = StreamingProfile("Luis", 25)
+
+    # Creamos películas
+    m1 = Movie("Interstellar", "Sci-Fi", 169, 8.7)
+    m2 = Movie("Shrek", "Animation", 90, 7.9)
+    m3 = Movie("Arrival", "Sci-Fi", 116, 7.9)
+    m4 = Movie("Gladiator", "Drama", 155, 8.5)
+    m5 = Movie("Dune", "Sci-Fi", 155, 8.0)
+    m6 = Movie("Titanic", "Drama", 194, 7.9)
+    m7 = Movie("Cars", "Animation", 117, 7.2)
+
+    print("----- PERFILES INICIALES -----")
+    print(ana)
+    print(luis)
+
+    print("\n----- WATCH -----")
+    print("Esperado: True")
+    print("Obtenido:", ana.watch(m1))
+
+    print("Esperado: True")
+    print("Obtenido:", ana.watch(m2))
+
+    print("Esperado: True")
+    print("Obtenido:", ana.watch(m3))
+
+    print("Esperado: True")
+    print("Obtenido:", ana.watch(m4))
+
+    print("Esperado: True")
+    print("Obtenido:", ana.watch(m5))
+
+    # Repetida
+    print("Esperado: False")
+    print("Obtenido:", ana.watch(m1))
+
+    print("\n----- FAVORITE GENRE -----")
+    print("Esperado: Sci-Fi")
+    print("Obtenido:", ana.favorite_genre())
+
+    print("\n----- AGE PROPERTY -----")
+    print("Esperado: 20")
+    print("Obtenido:", ana.age)
+
+    ana.age = 30
+    print("Esperado: 30")
+    print("Obtenido:", ana.age)
+
+    ana.age = -5
+    print("Esperado: 30")
+    print("Obtenido:", ana.age)
+
+    print("\n----- LUIS -----")
+    luis.watch(m4)
+    luis.watch(m6)
+    luis.watch(m7)
+
+    print("Esperado: Drama")
+    print("Obtenido:", luis.favorite_genre())
+
+    print("\n----- TOTAL VIEWS -----")
+    print("Esperado: 8")
+    print("Obtenido:", StreamingProfile.total_views())
+
+    print("\n----- RECOMMENDED -----")
+    print("Esperado: True")
+    print("Obtenido:", StreamingProfile.recommended(m3, ana))
+
+    print("Esperado: False")
+    print("Obtenido:", StreamingProfile.recommended(m7, ana))
+
+    print("\n----- STR -----")
+    print(ana)
+    print(luis)
+    
+    
+                    
+        
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    

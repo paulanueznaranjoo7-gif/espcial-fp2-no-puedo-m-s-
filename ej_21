@@ -1,0 +1,296 @@
+class Pet:
+
+    def __init__(self, name, species, priority):
+        self.name = name
+        self.species = species
+        self.priority = priority
+
+    def __str__(self):
+        return f"{self.name} ({self.species}) - priority {self.priority}"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class Node:
+
+    def __init__(self, pet):
+        self.value = pet
+        self.next = None
+        self.prev = None
+
+
+class VeterinaryClinic:
+
+    clinic_name = "Happy Pets"
+
+    def __init__(self):
+        self.first = None
+        self.last = None
+        self._max_priority = 5
+    
+    @property
+    def max_priority(self):
+        return self._max_priority
+    
+    @max_priority.setter
+    def max_priority(self, prioridad):
+        if 0 < prioridad < 10:
+            self._max_priority = prioridad
+            return self._max_priority
+        else:
+            return self._max_priority
+    
+    @classmethod 
+    def rename_clinic(cls, new_name):
+        clinica = cls.clinic_name
+        cls.clinic_name = new_name
+        return clinica
+
+    def insert_by_priority(self, pet):
+        
+        new_node = Node(pet)
+        
+        if self.first is None:
+            self.first = self.last = new_node
+            return True
+        elif self.first.next is None:
+            if pet.priority < self.first.value.priority:
+                self.first.next = new_node
+                new_node.prev = self.first
+                return True
+            else:
+                new_node.next = self.first
+                self.first.prev = new_node
+                self.first = new_node
+                return True
+        else:
+            prev = self.first
+            current = self.first
+            
+            while current is not None and current.value.priority >= pet.priority:
+                prev = current
+                current = current.next
+            animal = prev
+            new_node.next = current
+            animal.next = new_node 
+            new_node.prev = animal
+            if current is None:
+                self.last = new_node
+            else:
+                current.prev = new_node
+            return True
+        return False
+    
+    def remove_species(self, species):
+        
+        if self.first is None:
+            return None
+        elif self.first.value.species == species:
+            animal = self.first.value
+            self.first = self.first.next
+            return animal
+        else:
+            prev = self.first
+            current = self.first.next
+            
+            while current is not None:
+                if current.value.species == species:
+                    animal = current.value
+                    prev.next = current.next
+                    if current.next is None:
+                        self.last = prev
+                    else:
+                        current.next.prev = prev.next
+                    return animal
+                else:
+                    prev = current
+                    current = current.next
+
+            return None
+    
+    def move_last_to_second(self):
+        
+        if self.first is None:
+            return False
+        elif self.first == self.last:
+            return False
+        elif self.first.next == self.last:
+            return True
+        else:
+            animal = self.last
+            self.last = self.last.prev
+            prev = None
+            current = self.first
+            contador = 1
+            
+            while current is not None and contador < 2:
+                prev = current
+                current = current.next
+                contador += 1
+            if current is None and contador == 2:
+                return False
+            prev.next = animal
+            animal.prev = prev
+            animal.next = current
+            current.prev = animal
+            self.last.next = None
+            return True
+    
+if __name__ == "__main__":
+
+    clinic = VeterinaryClinic()
+
+    print("----- MAX PRIORITY PROPERTY -----")
+
+    print("Esperado: 5")
+    print("Obtenido:", clinic.max_priority)
+
+    clinic.max_priority = 8
+    print("Esperado: 8")
+    print("Obtenido:", clinic.max_priority)
+
+    clinic.max_priority = 15
+    print("Esperado: 8")
+    print("Obtenido:", clinic.max_priority)
+
+
+    print("\n----- RENAME CLINIC -----")
+
+    print("Nombre inicial esperado: Happy Pets")
+    print("Nombre obtenido:", VeterinaryClinic.clinic_name)
+
+    old_name = VeterinaryClinic.rename_clinic("Animal Care")
+
+    print("Nombre anterior esperado: Happy Pets")
+    print("Nombre anterior obtenido:", old_name)
+
+    print("Nombre nuevo esperado: Animal Care")
+    print("Nombre nuevo obtenido:", VeterinaryClinic.clinic_name)
+
+
+    print("\n----- INSERT BY PRIORITY -----")
+
+    p1 = Pet("Luna", "cat", 5)
+    p2 = Pet("Rocky", "dog", 4)
+    p3 = Pet("Toby", "cat", 4)
+    p4 = Pet("Milo", "dog", 2)
+    p5 = Pet("Nala", "rabbit", 4)
+
+    print("Esperado: True")
+    print("Obtenido:", clinic.insert_by_priority(p1))
+
+    print("Esperado: True")
+    print("Obtenido:", clinic.insert_by_priority(p2))
+
+    print("Esperado: True")
+    print("Obtenido:", clinic.insert_by_priority(p3))
+
+    print("Esperado: True")
+    print("Obtenido:", clinic.insert_by_priority(p4))
+
+    print("Esperado: True")
+    print("Obtenido:", clinic.insert_by_priority(p5))
+
+    print("\nOrden esperado:")
+    print("Luna 5 - Rocky 4 - Toby 4 - Nala 4 - Milo 2")
+
+    print("Orden obtenido:")
+    current = clinic.first
+    while current is not None:
+        print(current.value.name, current.value.priority, end=" - ")
+        current = current.next
+    print()
+
+
+    print("\n----- REMOVE SPECIES -----")
+
+    removed = clinic.remove_species("cat")
+
+    print("Esperado: Luna (cat) - priority 5")
+    print("Obtenido:", removed)
+
+    print("\nOrden esperado:")
+    print("Rocky - Toby - Nala - Milo")
+
+    print("Orden obtenido:")
+    current = clinic.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+
+    print("\n----- MOVE LAST TO SECOND -----")
+
+    print("Esperado: True")
+    print("Obtenido:", clinic.move_last_to_second())
+
+    print("\nOrden esperado:")
+    print("Rocky - Milo - Toby - Nala")
+
+    print("Orden obtenido:")
+    current = clinic.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+
+    print("\n----- COMPROBACIÓN HACIA ATRÁS -----")
+
+    print("Orden esperado:")
+    print("Nala - Toby - Milo - Rocky")
+
+    print("Orden obtenido:")
+    current = clinic.last
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.prev
+    print()
+        
+        
+        
+        
+            
+            
+            
+            
+            
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+            
+            
+            
+            
+            
+
+
+
+        
+        
+    
+    
+    
+    
+        
+    
+    
+    
+    
+    
+    
+    
+    

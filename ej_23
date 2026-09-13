@@ -1,0 +1,341 @@
+class Guest:
+
+    def __init__(self, name, room, nights):
+        self.name = name
+        self.room = room
+        self.nights = nights
+
+    def __str__(self):
+        return f"{self.name} - room {self.room} - {self.nights} nights"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class Node:
+
+    def __init__(self, guest):
+        self.value = guest
+        self.next = None
+        self.prev = None
+    
+
+class HotelFloor:
+    def __init__(self, floor_number):
+        self._floor_number = floor_number
+        self._occupancy = 0
+        self.first = None
+        self.last = None
+    
+    @property
+    def occupancy(self):
+        return self._occupancy
+    
+    @staticmethod 
+    def same_stay(guest1, guest2):
+        
+        if guest1.nights == guest2.nights:
+            return True
+        return False
+    
+    def insert_after_room(self, guest, room):
+        
+        new_node = Node(guest)
+        
+        if self.first is None:
+            self.first = self.last = new_node
+            self._occupancy += 1
+            return True
+        else:
+            current = self.first
+            
+            while current is not None:
+                if current.value.room == room:
+                    siguiente = current.next
+                    self._occupancy += 1
+                    current.next = new_node
+                    new_node.prev = current
+                    new_node.next = siguiente
+                    if siguiente is not None:
+                        siguiente.prev = new_node
+                    return True
+                else:
+                    current = current.next 
+            return False
+    
+    def remove_every_second(self):
+        
+        if self.first is None:
+            return None
+        
+        else:
+            prev = self.first
+            current = self.first.next
+            contador = 0
+            lista = []
+            
+            while current is not None:
+                if contador % 2 == 0:
+                    lista.append(current.value)
+                    self._occupancy -= 1
+                    prev.next = current.next
+                    if current.next is None:
+                        self.last = prev
+                        return lista
+                    else:
+                        current.next.prev = prev
+                    current = current.next
+                    contador += 1
+                else:
+                    prev = current
+                    current = current.next
+                    contador += 1
+            
+            return lista  
+    
+    def split_at_room(self, room):
+        
+        new_hotelfloor = HotelFloor(self._floor_number)
+        puntero = new_hotelfloor.first
+        
+        current = self.first
+        nodo = None
+        while current is not None:
+            if current.value.room == room:
+                nodo = current.next
+                current.next = None
+            else:
+                current = current.next
+                
+        while nodo is not None:
+            new = nodo
+            if puntero is not None:
+                new.next = new_hotelfloor.first
+                new_hotelfloor.first.prev = new
+                new_hotelfloor.first = new
+            else:
+                new_hotelfloor.first = new_hotelfloor.last = new
+            nodo = nodo.next
+        
+        return 
+
+if __name__ == "__main__":
+
+    floor = HotelFloor(3)
+
+    g1 = Guest("Ana", 301, 4)
+    g2 = Guest("Luis", 302, 2)
+    g3 = Guest("Marta", 303, 5)
+    g4 = Guest("Pedro", 304, 2)
+    g5 = Guest("Laura", 305, 7)
+    g6 = Guest("Carlos", 306, 3)
+
+    # ==========================================
+    # 1. OCCUPANCY
+    # ==========================================
+
+    print("\n--- OCCUPANCY INICIAL ---")
+    print("Esperado: 0")
+    print("Obtenido:", floor.occupancy)
+
+
+    # ==========================================
+    # 2. STATICMETHOD SAME_STAY
+    # ==========================================
+
+    print("\n--- SAME STAY ---")
+
+    print("Luis y Pedro:")
+    print("Esperado: True")
+    print("Obtenido:", HotelFloor.same_stay(g2, g4))
+
+    print("\nAna y Marta:")
+    print("Esperado: False")
+    print("Obtenido:", HotelFloor.same_stay(g1, g3))
+
+
+    # ==========================================
+    # 3. INSERT_AFTER_ROOM
+    # ==========================================
+
+    print("\n--- INSERT AFTER ROOM ---")
+
+    print("Ana:", floor.insert_after_room(g1, 999))
+    print("Luis:", floor.insert_after_room(g2, 301))
+    print("Marta:", floor.insert_after_room(g3, 302))
+    print("Pedro:", floor.insert_after_room(g4, 303))
+    print("Laura:", floor.insert_after_room(g5, 304))
+    print("Carlos:", floor.insert_after_room(g6, 305))
+
+    print("\nOrden esperado:")
+    print("Ana - Luis - Marta - Pedro - Laura - Carlos")
+
+    print("Orden obtenido:")
+    current = floor.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+    print("\nOccupancy esperado: 6")
+    print("Occupancy obtenido:", floor.occupancy)
+
+
+    # ==========================================
+    # 4. REMOVE EVERY SECOND
+    # ==========================================
+
+    print("\n--- REMOVE EVERY SECOND ---")
+
+    removed = floor.remove_every_second()
+
+    print("Eliminados esperados:")
+    print("Luis - Pedro - Carlos")
+
+    print("Eliminados obtenidos:")
+    for guest in removed:
+        print(guest.name, end=" - ")
+    print()
+
+    print("\nLista restante esperada:")
+    print("Ana - Marta - Laura")
+
+    print("Lista restante obtenida:")
+    current = floor.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+    print("\nOccupancy esperado: 3")
+    print("Occupancy obtenido:", floor.occupancy)
+
+
+    # ==========================================
+    # Añadimos huéspedes para probar SPLIT
+    # ==========================================
+
+    floor.insert_after_room(g2, 301)
+    floor.insert_after_room(g4, 302)
+    floor.insert_after_room(g6, 304)
+
+    # Ahora debería ser:
+    # Ana - Luis - Pedro - Carlos - Marta - Laura
+
+    print("\n--- ANTES DEL SPLIT ---")
+
+    print("Esperado:")
+    print("Ana - Luis - Pedro - Carlos - Marta - Laura")
+
+    print("Obtenido:")
+    current = floor.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+
+    # ==========================================
+    # 5. SPLIT AT ROOM
+    # ==========================================
+
+    print("\n--- SPLIT AT ROOM 304 ---")
+
+    other = floor.split_at_room(304)
+
+    print("\nPRIMER OBJETO:")
+    print("Esperado:")
+    print("Ana - Luis - Pedro")
+
+    print("Obtenido:")
+    current = floor.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+    print("Occupancy esperado: 3")
+    print("Occupancy obtenido:", floor.occupancy)
+
+
+    print("\nNUEVO OBJETO:")
+    print("Esperado:")
+    print("Carlos - Marta - Laura")
+
+    print("Obtenido:")
+    current = other.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+    print("Occupancy esperado: 3")
+    print("Occupancy obtenido:", other.occupancy)
+
+    print("\nFloor number esperado: 3")
+    print("Floor number obtenido:", other.floor_number)
+
+
+    # ==========================================
+    # COMPROBACIÓN DE PREV
+    # ==========================================
+
+    print("\n--- RECORRIDO INVERSO PRIMER OBJETO ---")
+
+    print("Esperado:")
+    print("Pedro - Luis - Ana")
+
+    print("Obtenido:")
+    current = floor.last
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.prev
+    print()
+
+
+    print("\n--- RECORRIDO INVERSO NUEVO OBJETO ---")
+
+    print("Esperado:")
+    print("Laura - Marta - Carlos")
+
+    print("Obtenido:")
+    current = other.last
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.prev
+    print()
+                
+            
+      
+      
+            
+            
+            
+            
+            
+                
+            
+            
+            
+            
+            
+            
+                    
+            
+            
+            
+            
+            
+            
+            
+            
+        
+        
+        
+        
+    
+    
+    
+    
+    
+        

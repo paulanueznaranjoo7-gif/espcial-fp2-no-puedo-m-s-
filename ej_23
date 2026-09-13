@@ -93,31 +93,48 @@ class HotelFloor:
             
             return lista  
     
-    def split_at_room(self, room):
-        
-        new_hotelfloor = HotelFloor(self._floor_number)
-        puntero = new_hotelfloor.first
-        
-        current = self.first
-        nodo = None
-        while current is not None:
-            if current.value.room == room:
-                nodo = current.next
-                current.next = None
-            else:
-                current = current.next
+            def split_at_room(self, room):
+    
+                new_hotelfloor = HotelFloor(self._floor_number)
                 
-        while nodo is not None:
-            new = nodo
-            if puntero is not None:
-                new.next = new_hotelfloor.first
-                new_hotelfloor.first.prev = new
-                new_hotelfloor.first = new
-            else:
-                new_hotelfloor.first = new_hotelfloor.last = new
-            nodo = nodo.next
-        
-        return 
+                current = self.first
+                nodo = None
+                
+                while current is not None:
+                    if current.value.room == room:
+                        nodo = current.next
+                        
+                        if nodo is None:
+                            return None
+                        
+                        current.next = None
+                        self.last = current
+                        
+                        nodo.prev = None
+                        new_hotelfloor.first = nodo
+                        
+                        break
+                    else:
+                        current = current.next
+                
+                if nodo is None:
+                    return None
+                
+                puntero = nodo
+                contador = 0
+                
+                while puntero is not None:
+                    contador += 1
+                    
+                    if puntero.next is None:
+                        new_hotelfloor.last = puntero
+                    
+                    puntero = puntero.next
+                
+                new_hotelfloor._occupancy = contador
+                self._occupancy -= contador
+                
+                return new_hotelfloor
 
 if __name__ == "__main__":
 
@@ -319,6 +336,28 @@ if __name__ == "__main__":
             
             
             
+            
+                    
+            
+            
+            
+            
+            
+            
+            
+            
+        
+        
+        
+        
+    
+    
+    
+    
+    
+
+   
+   
             
                     
             

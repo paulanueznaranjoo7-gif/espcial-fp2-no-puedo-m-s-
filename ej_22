@@ -1,0 +1,307 @@
+class Passenger:
+
+    def __init__(self, name, seat, luggage_weight):
+        self.name = name
+        self.seat = seat
+        self.luggage_weight = luggage_weight
+
+    def __str__(self):
+        return f"{self.name} - seat {self.seat} - {self.luggage_weight} kg"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class Node:
+
+    def __init__(self, passenger):
+        self.value = passenger
+        self.next = None
+        self.prev = None
+        
+class AirportGate:
+    def __init__(self, flight, max_luggage):
+        self._flight = flight
+        self._max_luggage = max_luggage
+        self.first = None
+        self.last = None
+    
+    
+    @property
+    def max_luggage(self):
+        return self._max_luggage
+    
+    @max_luggage.setter
+    def max_luggage(self, peso):
+        
+        if peso < 0:
+            return False
+        
+        current = self.first
+        
+        while current is not None:
+            if peso < current.value.luggage_weight:
+                return False
+            current = current.next
+        
+        self._max_luggage = peso
+        return True
+        
+        
+        
+    
+    def count_heavy(self, weight):
+        current = self.first
+        contador = 0
+        
+        while current is not None:
+            if current.value.luggage_weight > weight:
+                contador += 1
+            current = current.next
+        
+        return contador
+    
+    def board_passenger(self, passenger):
+        
+        new_node = Node(passenger)
+        
+        if self.first is None:
+            if passenger.luggage_weight > self._max_luggage:
+                return False
+            else:
+                self.first = self.last = new_node
+                return True
+        else:
+            
+            if passenger.luggage_weight <= self._max_luggage:
+            
+                if passenger.seat % 2 == 0:
+                    new_node.next = self.first
+                    self.first.prev = new_node
+                    self.first = new_node
+                    return True
+                else:
+                    self.last.next = new_node
+                    new_node.prev = self.last
+                    self.last = new_node
+                    return True
+            else:
+                return False
+    
+    def remove_seat(self, seat):
+        if self.first is None:
+            return None
+        elif self.first.value.seat == seat:
+            eliminado = self.first.value
+            self.first = self.first.next
+            if self.first is None:
+                self.last = None
+            return eliminado
+        else:
+            prev = self.first
+            current = self.first.next
+            while current is not None and current.value.seat != seat:
+                prev = current
+                current = current.next
+            
+            if current is None:
+                return None
+            
+            eliminado = current.value
+            prev.next = current.next
+            if current.next is None:
+                self.last = prev
+                self.last.next = None
+            else:
+                current.next.prev = prev
+            
+            return eliminado
+        
+    def move_heaviest_to_front(self):
+        
+        if self.first is None:
+            return False
+        elif self.first.next is None:
+            return False
+        elif self.first.next == self.last:
+            if self.first.value.luggage_weight > self.last.value.luggage_weight:
+                return True
+            else:
+                ultimo = self.last.value
+                primero = self.first.value
+                self.last.value = primero
+                self.first.value = ultimo
+                return True
+        
+        else:
+            max = -9999
+            maximo = None
+            prev = self.first
+            current = self.first.next
+            while current is not None:
+                if current.value.luggage_weight > max:
+                    max = current.value.luggage_weight
+                    maximo = current
+                current = current.next
+            
+            prev = self.first
+            current = self.first.next
+            
+            while current is not None and current.value != maximo.value:
+                prev = current
+                current = current.next
+            
+            prev.next = current.next
+            if current.next is None:
+                self.last = prev
+            else:
+                current.next.prev = prev
+            
+            maximo.next = self.first
+            self.first.prev = maximo
+            self.first = maximo
+            maximo.prev = None
+            return True
+        
+if __name__ == "__main__":
+
+    gate = AirportGate("IB3821", 20)
+
+    # PASAJEROS
+    p1 = Passenger("Ana", 12, 14)
+    p2 = Passenger("Luis", 7, 18)
+    p3 = Passenger("Marta", 4, 10)
+    p4 = Passenger("Pedro", 15, 16)
+    p5 = Passenger("Laura", 21, 25)
+
+    # 1. PROPERTY max_luggage
+    print("\n--- MAX LUGGAGE ---")
+
+    print("Inicial:")
+    print("Esperado: 20")
+    print("Obtenido:", gate.max_luggage)
+
+    gate.max_luggage = 25
+    print("\nDespués de cambiar a 25:")
+    print("Esperado: 25")
+    print("Obtenido:", gate.max_luggage)
+
+
+    # 2. BOARD PASSENGER
+    print("\n--- BOARD PASSENGER ---")
+
+    print("Ana:", gate.board_passenger(p1))
+    print("Luis:", gate.board_passenger(p2))
+    print("Marta:", gate.board_passenger(p3))
+    print("Pedro:", gate.board_passenger(p4))
+    print("Laura:", gate.board_passenger(p5))
+
+    print("\nOrden esperado:")
+    print("Marta - Ana - Luis - Pedro - Laura")
+
+    print("Orden obtenido:")
+    current = gate.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+
+    # 3. COUNT HEAVY
+    print("\n--- COUNT HEAVY ---")
+
+    print("Pasajeros con equipaje > 15 kg")
+    print("Esperado: 3")
+    print("Obtenido:", gate.count_heavy(15))
+
+
+    # Volvemos a probar el setter CON pasajeros dentro
+    print("\n--- SETTER CON PASAJEROS ---")
+
+    gate.max_luggage = 20
+
+    print("Intentamos cambiar el máximo a 20:")
+    print("Esperado: 25")
+    print("Obtenido:", gate.max_luggage)
+
+    gate.max_luggage = 30
+
+    print("\nIntentamos cambiar el máximo a 30:")
+    print("Esperado: 30")
+    print("Obtenido:", gate.max_luggage)
+
+
+    # 4. REMOVE SEAT
+    print("\n--- REMOVE SEAT ---")
+
+    removed = gate.remove_seat(7)
+
+    print("Pasajero eliminado:")
+    print("Esperado: Luis")
+    print("Obtenido:", removed.name if removed else None)
+
+    print("\nOrden esperado:")
+    print("Marta - Ana - Pedro - Laura")
+
+    print("Orden obtenido:")
+    current = gate.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+
+    # 5. MOVE HEAVIEST TO FRONT
+    print("\n--- MOVE HEAVIEST TO FRONT ---")
+
+    result = gate.move_heaviest_to_front()
+
+    print("Resultado:")
+    print("Esperado: True")
+    print("Obtenido:", result)
+
+    print("\nOrden esperado:")
+    print("Laura - Marta - Ana - Pedro")
+
+    print("Orden obtenido:")
+    current = gate.first
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.next
+    print()
+
+
+    # COMPROBACIÓN HACIA ATRÁS
+    print("\n--- RECORRIDO HACIA ATRÁS ---")
+
+    print("Esperado:")
+    print("Pedro - Ana - Marta - Laura")
+
+    print("Obtenido:")
+    current = gate.last
+    while current is not None:
+        print(current.value.name, end=" - ")
+        current = current.prev
+    print()        
+        
+                
+            
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+    
+    
+    

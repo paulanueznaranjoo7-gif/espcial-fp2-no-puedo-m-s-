@@ -1,0 +1,117 @@
+class Botella:
+
+    capacidades = {}
+    volumenes = {}
+
+    def __init__(self, capacidad, contenido):
+
+        if contenido < 0 or contenido > capacidad:
+            raise ValueError("contenido")
+
+        self.__capacidad = capacidad
+        self.__contenido = contenido
+
+        if capacidad not in Botella.capacidades:
+            Botella.capacidades[capacidad] = 0
+            Botella.volumenes[capacidad] = 0
+
+        Botella.capacidades[capacidad] += 1
+        Botella.volumenes[capacidad] += contenido
+
+
+    @property
+    def capacidad(self):
+        return self.__capacidad
+
+
+    @property
+    def contenido(self):
+        return self.__contenido
+
+
+    @contenido.setter
+    def contenido(self, valor):
+
+        if type(valor) is not int or valor < 0 or valor > self.__capacidad:
+            raise ValueError("contenido")
+
+        diferencia = valor - self.__contenido
+        self.__contenido = valor
+
+        Botella.volumenes[self.__capacidad] += diferencia
+
+
+    def transferir(self, otra, cantidad):
+
+        if cantidad <= 0:
+            raise ValueError("transferir")
+
+        elif cantidad > self.contenido:
+            raise ValueError("transferir")
+
+        elif type(otra) is not Botella:
+            raise ValueError("transferir")
+
+        elif otra.contenido + cantidad > otra.capacidad:
+            raise ValueError("transferir")
+
+        else:
+            self.__contenido -= cantidad
+            otra.__contenido += cantidad
+
+
+    @classmethod
+    def botellas_capacidad(cls, capacidad):
+
+        if capacidad in cls.capacidades:
+            return cls.capacidades[capacidad]
+        else:
+            return 0
+
+
+    @classmethod
+    def volumen_total(cls, capacidad=None):
+
+        if capacidad is not None:
+
+            if capacidad in cls.volumenes:
+                return cls.volumenes[capacidad]
+            else:
+                return 0
+
+        else:
+            return sum(cls.volumenes.values())
+
+
+if __name__ == "__main__":
+
+    b1 = Botella(500, 200)
+    b2 = Botella(500, 100)
+
+    print("Contenido b1:", b1.contenido)
+    print("Contenido b2:", b2.contenido)
+
+    print("Botellas de 500:",
+          Botella.botellas_capacidad(500))
+
+    print("Volumen de botellas de 500:",
+          Botella.volumen_total(500))
+
+    print("Volumen total:",
+          Botella.volumen_total())
+
+    print("\n--- CAMBIAMOS CONTENIDO ---")
+
+    b1.contenido = 250
+
+    print("Nuevo contenido b1:", b1.contenido)
+
+    print("Volumen de botellas de 500:",
+          Botella.volumen_total(500))
+
+    print("\n--- TRANSFERENCIA ---")
+
+    b1.transferir(b2, 50)
+
+    print("Contenido b1:", b1.contenido)
+    print("Contenido b2:", b2.contenido)

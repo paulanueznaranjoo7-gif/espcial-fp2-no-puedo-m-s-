@@ -1,0 +1,263 @@
+class Loan:
+    def __init__(self, title, reader, days_overdue):
+        self.title = title
+        self.reader = reader
+        self.days_overdue = days_overdue
+
+    def __str__(self):
+        return f"{self.title} ({self.reader}, {self.days_overdue}d)"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+
+
+class ContainerBase:
+    def __init__(self):
+        self.first = None
+        self.last = None
+
+    def __str__(self):
+        result = ""
+        current = self.first
+
+        while current is not None:
+            result += f"{current.value}->"
+            current = current.next
+
+        result += "None"
+        return result
+    
+class LoanRegister(ContainerBase):
+    def __init__(self, loans=None):
+        super().__init__()
+        self._penalties_collected = 0
+        
+        if loans is not None:
+            for prestamo in loans:
+                self.append_loan(prestamo)
+        
+    def append_loan(self, loan):
+            
+        new_node = Node(loan)
+            
+        if self.first is None:
+            self.first = self.last = new_node
+        else:
+            self.last.next = new_node
+            self.last = new_node
+        
+    def get_loans(self):
+            
+        lista = []
+            
+        current = self.first
+            
+        while current is not None:
+            lista.append(current.value)
+            current = current.next
+            
+        return lista
+        
+    def attend_return(self):
+            
+        if self.first is not None:
+            eliminado = self.first
+            self.first = self.first.next
+            if self.first is None:
+                self.last = None
+                
+            self._penalties_collected +=  eliminado.value.days_overdue * 2
+            return eliminado.value
+        else:
+            return None
+        
+    @property
+    def get_penalties_collected(self):
+        return self._penalties_collected
+        
+    def get_overdue(self):
+        
+        retrasos = []
+        current = self.first
+            
+        while current is not None:
+            if current.value.days_overdue > 0:
+                retrasos.append(current.value)
+            current = current.next
+            
+        return retrasos
+        
+    def separate_overdue(self):
+            
+        prestamos = LoanRegister()
+            
+        while self.first is not None and self.first.value.days_overdue > 0:
+                eliminado = self.first
+                prestamos.append_loan(eliminado.value)
+                self.first = self.first.next
+            
+        if self.first is None:
+            return prestamos
+        
+        prev = self.first
+        current = self.first.next
+        
+        while current is not None:
+            if current.value.days_overdue > 0:
+                eliminado = current
+                prestamos.append_loan(eliminado.value)
+                prev.next = current.next
+                current = current.next
+            else:
+                prev = current
+                current = current.next
+        
+        self.last = prev
+        return prestamos
+
+if __name__ == "__main__":
+
+    print("===== 1. REGISTRO VACÍO =====")
+
+    registro = LoanRegister()
+
+    print("Loans esperado: []")
+    print("Loans obtenido:", registro.get_loans())
+
+    print("Penalties esperado: 0")
+    print("Penalties obtenido:", registro._penalties_collected)
+
+
+    print("\n===== 2. AÑADIR PRÉSTAMOS =====")
+
+    registro.append_loan(Loan("Python Básico", "Ana", 0))
+    registro.append_loan(Loan("EDA", "Luis", 3))
+    registro.append_loan(Loan("Álgebra", "Marta", 2))
+
+    print("Loans esperado:")
+    print([
+        Loan("Python Básico", "Ana", 0),
+        Loan("EDA", "Luis", 3),
+        Loan("Álgebra", "Marta", 2)
+    ])
+
+    print("Loans obtenido:")
+    print(registro.get_loans())
+
+
+    print("\n===== 3. ATTEND RETURN =====")
+
+    print("Eliminado esperado:")
+    print("Python Básico (Ana, 0d)")
+
+    print("Eliminado obtenido:")
+    print(registro.attend_return())
+
+    print("Penalties esperado: 0")
+    print("Penalties obtenido:", registro._penalties_collected)
+
+    print("Loans que quedan:")
+    print(registro.get_loans())
+
+
+    print("\n===== 4. PRÉSTAMOS CON RETRASO =====")
+
+    print("Esperado:")
+    print([
+        Loan("EDA", "Luis", 3),
+        Loan("Álgebra", "Marta", 2)
+    ])
+
+    print("Obtenido:")
+    print(registro.get_overdue())
+
+
+    print("\n===== 5. SEPARATE OVERDUE =====")
+
+    retrasados = registro.separate_overdue()
+
+    print("Original esperado: []")
+    print("Original obtenido:")
+    print(registro.get_loans())
+
+    print("Retrasados esperado:")
+    print([
+        Loan("EDA", "Luis", 3),
+        Loan("Álgebra", "Marta", 2)
+    ])
+
+    print("Retrasados obtenido:")
+    print(retrasados.get_loans())
+
+    print("Penalties del nuevo esperado: 0")
+    print("Penalties del nuevo obtenido:",
+          retrasados._penalties_collected)
+
+
+    print("\n===== 6. CONSTRUCTOR CON PRÉSTAMOS =====")
+
+    prestamos = [
+        Loan("Python Básico", "Anastasia", 0),
+        Loan("EDA", "Luis", 3)
+    ]
+
+    otro_registro = LoanRegister(prestamos)
+
+    print("Esperado:")
+    print(prestamos)
+
+    print("Obtenido:")
+    print(otro_registro.get_loans())
+
+
+    print("\n===== 7. ATTEND RETURN CON PENALIZACIÓN =====")
+
+    eliminado = otro_registro.attend_return()
+
+    print("Eliminado esperado:")
+    print("Python Básico (Anastasia, 0d)")
+    print("Eliminado obtenido:")
+    print(eliminado)
+
+    eliminado = otro_registro.attend_return()
+
+    print("\nEliminado esperado:")
+    print("EDA (Luis, 3d)")
+    print("Eliminado obtenido:")
+    print(eliminado)
+
+    print("Penalties esperado: 6")
+    print("Penalties obtenido:",
+          otro_registro._penalties_collected)
+
+
+    print("\n===== 8. ATTEND RETURN VACÍO =====")
+
+    print("Esperado: None")
+    print("Obtenido:", otro_registro.attend_return())
+                
+                
+        
+                    
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        

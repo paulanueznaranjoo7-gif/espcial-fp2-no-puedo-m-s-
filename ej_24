@@ -1,0 +1,366 @@
+class Car:
+
+    def __init__(self, plate, owner, hours):
+        self.plate = plate
+        self.owner = owner
+        self.hours = hours
+
+    def __str__(self):
+        return f"{self.plate} - {self.owner} - {self.hours} hours"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class Node:
+
+    def __init__(self, car):
+        self.value = car
+        self.next = None
+        self.prev = None
+    
+class ParkingLot:
+    def __init__(self, name, max_hours):
+        self._name = name
+        self._max_hours = max_hours
+        self.first = None
+        self.last = None
+    
+        
+    @property
+    def max_hours(self):
+        return self._max_hours
+    
+    @max_hours.setter
+    def max_hours(self, hora):
+    
+        if hora <= 0:
+            return self._max_hours
+    
+        current = self.first
+    
+        while current is not None:
+            if current.value.hours > hora:
+                return self._max_hours
+        
+            current = current.next
+    
+        self._max_hours = hora
+        return self._max_hours
+        
+    
+    def find_owner(self, owner):
+        
+        current = self.first
+        lista = []
+        
+        while current is not None:
+            if current.value.owner == owner:
+                lista.append(current.value)
+            current = current.next
+        return lista
+    
+    def park_before_plate(self, car, plate):
+        
+        new_node = Node(car)
+        
+        if self.first is None:
+            self.first = self.last = new_node
+            return True
+        else:
+            prev = None
+            current = self.first
+            
+            while current is not None:
+                if current.value.plate == plate:
+                    if prev is None:
+                        new_node.prev = None
+                        self.first = new_node
+                    elif prev is not None:
+                        prev.next = new_node
+                        new_node.prev = prev
+                        
+                    new_node.next = current
+                    current.prev = new_node
+                    return True
+                else:
+                    prev = current
+                    current = current.next
+            
+            return False
+    
+    def remove_longest_stay(self):
+        
+        if self.first is None:
+            return None
+        elif self.first.next is None:
+            eliminado = self.first
+            self.first = self.first.next
+            if self.first is None:
+                self.last = None
+            return eliminado
+        
+        current = self.first
+        maximo = -99999
+        maxi = None 
+        
+        while current is not None:
+            if current.value.hours >= maximo:
+                maximo = current.value.hours
+                maxi = current.value
+            current = current.next
+        
+        else:
+            prev = self.first
+            current = self.first.next
+            
+            if self.first.value == maxi:
+                self.first = self.first.next
+                return maxi
+            
+            while current is not None:
+                if current.value  == maxi:
+                    prev.next = current.next
+                    if current.next is None:
+                        self.last = prev
+                    else:
+                        current.next.prev = prev
+                    return maxi
+                else:
+                    prev = current
+                    current = current.next
+            return None
+    
+    @classmethod 
+    def most_occupied(cls, parking1, parking2):
+        
+            puntero1 = parking1.first
+            puntero2 = parking2.first
+            
+            contero1 = 0
+            while puntero1 is not None:
+                contero1 += 1
+                puntero1 = puntero1.next
+            
+            contero2 = 0
+            while puntero2 is not None:
+                contero2 += 1
+                puntero2 = puntero2.next
+            
+            if contero1 > contero2:
+                return parking1
+            elif contero2 > contero1:
+                return parking2
+            else:
+                return None
+                
+if __name__ == "__main__":
+
+    parking1 = ParkingLot("Central Parking", 12)
+    parking2 = ParkingLot("Beach Parking", 10)
+
+    c1 = Car("1111-AAA", "Ana", 4)
+    c2 = Car("2222-BBB", "Luis", 7)
+    c3 = Car("3333-CCC", "Ana", 3)
+    c4 = Car("4444-DDD", "Marta", 7)
+    c5 = Car("5555-EEE", "Pedro", 5)
+    c6 = Car("6666-FFF", "Laura", 9)
+
+
+    # ==========================================
+    # 1. PROPERTY MAX_HOURS
+    # ==========================================
+
+    print("\n--- MAX HOURS INICIAL ---")
+    print("Esperado: 12")
+    print("Obtenido:", parking1.max_hours)
+
+
+    # ==========================================
+    # 2. PARK BEFORE PLATE
+    # ==========================================
+
+    print("\n--- PARK BEFORE PLATE ---")
+
+    print("Ana:")
+    print("Esperado: True")
+    print("Obtenido:", parking1.park_before_plate(c1, "XXXX"))
+
+    print("\nLuis antes de Ana:")
+    print("Esperado: True")
+    print("Obtenido:", parking1.park_before_plate(c2, "1111-AAA"))
+
+    print("\nMarta antes de Ana:")
+    print("Esperado: True")
+    print("Obtenido:", parking1.park_before_plate(c4, "1111-AAA"))
+
+    print("\nPedro antes de Marta:")
+    print("Esperado: True")
+    print("Obtenido:", parking1.park_before_plate(c5, "4444-DDD"))
+
+    print("\nCoche antes de matrícula inexistente:")
+    print("Esperado: False")
+    print("Obtenido:", parking1.park_before_plate(c3, "9999-ZZZ"))
+
+    print("\nOrden esperado:")
+    print("Luis - Pedro - Marta - Ana")
+
+    print("Orden obtenido:")
+    current = parking1.first
+    while current is not None:
+        print(current.value.owner, end=" - ")
+        current = current.next
+    print()
+
+
+    # ==========================================
+    # 3. FIND OWNER
+    # ==========================================
+
+    # Ahora sí añadimos el segundo coche de Ana
+    print("\nAñadiendo segundo coche de Ana...")
+    print("Esperado: True")
+    print("Obtenido:", parking1.park_before_plate(c3, "1111-AAA"))
+
+    print("\n--- FIND OWNER ---")
+
+    cars = parking1.find_owner("Ana")
+
+    print("Ana:")
+    print("Esperado: 3333-CCC - 1111-AAA")
+    print("Obtenido:")
+    for car in cars:
+        print(car.plate, end=" - ")
+    print()
+
+    print("\nLaura:")
+    print("Esperado: []")
+    print("Obtenido:", parking1.find_owner("Laura"))
+
+
+    # ==========================================
+    # 4. PROPERTY: CAMBIO DE MAX_HOURS
+    # ==========================================
+
+    print("\n--- CAMBIAR MAX HOURS ---")
+
+    parking1.max_hours = 6
+
+    print("Intentamos bajar a 6.")
+    print("Esperado: 12")
+    print("Obtenido:", parking1.max_hours)
+
+    parking1.max_hours = 15
+
+    print("\nSubimos a 15.")
+    print("Esperado: 15")
+    print("Obtenido:", parking1.max_hours)
+
+
+    # ==========================================
+    # 5. REMOVE LONGEST STAY
+    # ==========================================
+
+    print("\n--- REMOVE LONGEST STAY ---")
+
+    print("Antes:")
+    print("Luis(7) - Pedro(5) - Marta(7) - Ana(3) - Ana(4)")
+
+    removed = parking1.remove_longest_stay()
+
+    print("\nEliminado esperado:")
+    print("Marta - 4444-DDD")
+
+    print("Eliminado obtenido:")
+    if removed is not None:
+        print(removed.owner, "-", removed.plate)
+    else:
+        print(None)
+
+    print("\nOrden esperado después:")
+    print("Luis - Pedro - Ana - Ana")
+
+    print("Orden obtenido:")
+    current = parking1.first
+    while current is not None:
+        print(current.value.owner, end=" - ")
+        current = current.next
+    print()
+
+
+    # ==========================================
+    # COMPROBACIÓN DE PREV
+    # ==========================================
+
+    print("\n--- RECORRIDO INVERSO ---")
+
+    print("Esperado:")
+    print("Ana - Ana - Pedro - Luis")
+
+    print("Obtenido:")
+    current = parking1.last
+    while current is not None:
+        print(current.value.owner, end=" - ")
+        current = current.prev
+    print()
+
+
+    # ==========================================
+    # 6. MOST OCCUPIED
+    # ==========================================
+
+    parking2.park_before_plate(c6, "XXXX")
+
+    print("\n--- MOST OCCUPIED ---")
+
+    result = ParkingLot.most_occupied(parking1, parking2)
+
+    print("Esperado:")
+    print("Central Parking")
+
+    print("Obtenido:")
+    if result is not None:
+        print(result._name)
+    else:
+        print(None)            
+            
+            
+            
+            
+            
+            
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+            
+             
+            
+            
+                
+            
+            
+            
+            
+            
+            
+                    
+            
+            
+            
+            
+            
+            
+            
+            
+        
+        

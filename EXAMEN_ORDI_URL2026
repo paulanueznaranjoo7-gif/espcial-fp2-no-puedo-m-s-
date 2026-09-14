@@ -1,0 +1,220 @@
+class Node:
+    
+    def __init__(self, url):
+        self.url = url
+        self.prev = None
+        self.next = None
+
+
+class ContainerBase:
+    
+    def __init__(self):
+        self.first = None
+        self.current = None
+
+    def __str__(self):
+        result = ""
+        pointer = self.first
+
+        while pointer is not None:
+            result += pointer.url + " -> "
+            pointer = pointer.next
+
+        result += "None"
+        return result
+
+class BrowserHistory(ContainerBase):
+
+    def __init__(self):
+        super().__init__()
+
+    def visit(self, url):
+        
+        new_node = Node(url)
+       
+        if self.first is None:
+            self.first = self.current = new_node
+        else:
+            prev = None
+            current = self.first
+            
+            while current is not None:
+                if current == self.current:
+                    current.next = new_node
+                    new_node.prev = current
+                    current = new_node
+                    self.current = new_node
+                    new_node.next = None
+                    return
+                else:
+                    current = current.next
+                    prev = self.first
+                
+            
+            if current == self.current:
+                new_node.prev = prev
+                self.current = new_node
+                return
+                
+                
+        
+    def back(self):
+        if self.current.prev is not None:
+            self.current = self.current.prev
+            return True
+        return False
+    
+    def forward(self):
+        if self.current.next is not None:
+            self.current = self.current.next
+            return True
+        return False
+  
+    def get_current_url(self):
+        if self.current is not None:
+            return self.current.url
+        else:
+            return None
+
+    def revisited(self, url):
+    
+        
+        current = self.first
+        contador = 0
+        while current is not None:
+            if current.url == url:
+                contador += 1
+            current = current.next
+        
+        if contador > 1:
+            return True
+        else:
+            return False
+            
+
+    def get_history(self):
+        
+        lista = []
+        current = self.first
+        
+        while current is not None:
+            lista.append(current.url)
+            current = current.next
+        
+        return lista
+
+    def get_size(self):
+        
+        current = self.first
+        contador = 0
+        while current is not None:
+            contador += 1
+            current = current.next
+        
+        return contador
+    
+if __name__ == "__main__":
+
+    history = BrowserHistory()
+
+    print(history.get_current_url())
+    # Esperado: None
+
+    print(history.get_size())
+    # Esperado: 0
+
+
+    history.visit("inicio.es")
+    history.visit("aulavirtual.es")
+    history.visit("correo.es")
+
+
+    print("\n--- DESPUÉS DE 3 VISITAS ---")
+
+    print("Current esperado: correo.es")
+    print("Current obtenido:", history.get_current_url())
+
+    print("Size esperado: 3")
+    print("Size obtenido:", history.get_size())
+
+    print("History esperado:")
+    print(["inicio.es", "aulavirtual.es", "correo.es"])
+
+    print("History obtenido:")
+    print(history.get_history())
+
+
+    print("\n--- BACK ---")
+
+    print("Back esperado: True")
+    print("Back obtenido:", history.back())
+
+    print("Current esperado: aulavirtual.es")
+    print("Current obtenido:", history.get_current_url())
+
+
+    print("\n--- VISIT DESPUÉS DE BACK ---")
+
+    history.visit("biblioteca.es")
+
+    print("Current esperado: biblioteca.es")
+    print("Current obtenido:", history.get_current_url())
+
+    print("Size esperado: 3")
+    print("Size obtenido:", history.get_size())
+
+    print("History esperado:")
+    print(["inicio.es", "aulavirtual.es", "biblioteca.es"])
+
+    print("History obtenido:")
+    print(history.get_history())
+
+
+    print("\n--- VISIT REPETIDA ---")
+
+    history.visit("biblioteca.es")
+
+    print("Current esperado: biblioteca.es")
+    print("Current obtenido:", history.get_current_url())
+
+    print("Size esperado: 4")
+    print("Size obtenido:", history.get_size())
+
+
+    print("\n--- REVISITED ---")
+
+    print("correo.es")
+    print("Esperado: False")
+    print("Obtenido:", history.revisited("correo.es"))
+
+    print("\nbiblioteca.es")
+    print("Esperado: True")
+    print("Obtenido:", history.revisited("biblioteca.es"))
+
+
+    print("\n--- GET HISTORY FINAL ---")
+
+    print("Esperado:")
+    print([
+        "inicio.es",
+        "aulavirtual.es",
+        "biblioteca.es",
+        "biblioteca.es"
+    ]) 
+
+    print("Obtenido:")
+    print(history.get_history())
+
+
+    print("\n--- FORWARD ---")
+
+    print("Esperado: False")
+    print("Obtenido:", history.forward())
+            
+        
+    
+    
+    
+    
+    
+        
